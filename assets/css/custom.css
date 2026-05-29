@@ -1,0 +1,70 @@
+/* --- Kustomisasi Ukuran Font Artikel Blowfish --- 
+.prose {
+    font-size: 26px !important;
+    line-height: 1.4 !important;
+}
+    */
+.prose p, 
+.prose li, 
+.prose ol, 
+.prose ul {
+    font-size: 16px !important;     /* <── Wajib menggunakan satuan px atau rem */
+    line-height: 1.4 !important;   /* <── Rekomendasi 1.5 atau 1.6 untuk keterbacaan artikel teknis */
+}
+/* Opsional: Jika ingin mengubah ukuran font blok kode di dalam artikel agar proporsional */
+.prose code, 
+.prose pre {
+    font-size: 14px !important;
+}
+/* ==========================================================================
+   PATCH SPACING ARTIKEL
+   ========================================================================== */
+
+/* Menargetkan semua heading di dalam artikel (.prose) */
+.prose h1, .prose h2, .prose h3, .prose h4 {
+    margin-top: 0.01rem !important;   /* <── Memangkas bracket merah paling atas */
+    margin-bottom: 0.3rem !important; /* <── Memangkas bracket merah tengah */
+}
+
+/* Menargetkan semua paragraf teks di dalam artikel */
+.prose p {
+    margin-top: 0.1rem !important;
+    margin-bottom: 0.6rem !important; /* <── Memangkas bracket merah paling bawah */
+}
+
+
+
+/* ==========================================================================
+   PATCH GAP ANTAR ARTIKEL 
+   ========================================================================== */
+
+/* 1. Memotong margin bawaan dari tiap baris blok artikel */
+article {
+    margin-bottom: 0.5rem !important; /* Dari aslinya mb-12 (3rem) kita pangkas habis */
+    /* padding-bottom: 100px !important; */
+}
+/* 2. Menjinakkan pembagi jarak vertikal (space-y) pada layout list Blowfish */
+.space-y-10 > :not([hidden]) ~ :not([hidden]),
+.space-y-12 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 0.5rem !important;   /* Memaksa elemen di bawahnya langsung naik */
+}
+
+/* ==========================================================================
+   PATCH GAP DARI ARTIKEL KE TAHUN BERIKUTNYA (image_e4b9c1.png)
+   ========================================================================== */
+
+/* Menjinakkan utility classes margin bawaan Blowfish pada pembungkus list */
+.mb-10, .my-10, .mb-12, .mt-12, .py-4, .py-8 {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    padding-top: 0.5rem !important;
+}
+
+/* ==========================================================================
+   REMOVE YEAR HEADERS FROM SECTION INDEX 
+   ========================================================================== */
+
+/* Menyembunyikan elemen H2 (tahun) yang berdiri sendiri di luar list artikel */
+h2:not(article h2):not(.prose h2) {
+    display: none !important;
+}
