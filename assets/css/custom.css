@@ -22,7 +22,7 @@
 
 /* Menargetkan semua heading di dalam artikel (.prose) */
 .prose h1, .prose h2, .prose h3, .prose h4 {
-    margin-top: 0.01rem !important;   /* <── Memangkas bracket merah paling atas */
+    margin-top: 0.8rem !important;   /* <── Memangkas bracket merah paling atas */
     margin-bottom: 0.3rem !important; /* <── Memangkas bracket merah tengah */
 }
 
@@ -35,7 +35,7 @@
 
 
 /* ==========================================================================
-   PATCH GAP ANTAR ARTIKEL 
+   PATCH GAP ANTAR ARTIKEL DI DOCUMENTATION
    ========================================================================== */
 
 /* 1. Memotong margin bawaan dari tiap baris blok artikel */

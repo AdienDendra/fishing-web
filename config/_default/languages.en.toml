@@ -8,11 +8,11 @@ title = "Blowfish"
   displayName = "EN"
   isoCode = "en"
   rtl = false
-  dateFormat = "2 January 2006"
+  dateFormat = "2 Jan 2006 15:04"
   # logo = "img/logo.png"
   # secondaryLogo = "img/secondary-logo.png"
   # description = "My awesome website"
-  # copyright = "Copy, _right?_ :thinking_face:"
+  copyright = "© 2026 Adien Dendra"
 
 # [params.author]
 #   name = "Your name here"
