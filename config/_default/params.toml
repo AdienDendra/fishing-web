@@ -72,14 +72,14 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   showViews = false
   showLikes = false
   showDateOnlyInArticle = false
-  showDateUpdated = true
+  showDateUpdated = false
   showAuthor = true
   # showAuthorBottom = false
   showHero = false
   # heroStyle = "basic" # valid options: basic, big, background, thumbAndBackground
   layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground
   layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
-  showBreadcrumbs = true
+  showBreadcrumbs = false
   showDraftLabel = true
   showEdit = false
   # editURL = "https://github.com/username/repo/"
@@ -97,8 +97,8 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   showTags = true # These will show if showTaxonomies is true.
   showCategoriesInSecondaryColor = false # This will change the color of category badges, so the user can better distinguish between the two. Only if showTaxonomies is true.
   showAuthorsBadges = false
-  showWordCount = false
-  sharingLinks = [ "linkedin", "twitter", "reddit", "facebook", "whatsapp", "telegram"]
+  showWordCount = true
+  # sharingLinks = [ "linkedin", "twitter", "bluesky", "mastodon", "reddit", "pinterest", "facebook", "email", "whatsapp", "telegram", "line"]
   showZenMode = false
   # externalLinkForceNewTab = false # disable to allow external links in the same tab (defaults to true)
 
@@ -172,11 +172,12 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   # enableTrackEvent = true
 
 [buymeacoffee]
-  # identifier = ""
-  # globalWidget = true
-  # globalWidgetMessage = "Hello"
-  # globalWidgetColor = "#FFDD00"
-  # globalWidgetPosition = "right"
+  identifier = "adiendendra"     # <── Masukkan ID/Username BuyMeACoffee Anda di sini
+  globalWidget = true             # Set ke true agar muncul di semua halaman
+  globalWidgetMessage = "Support this project!" 
+  globalWidgetColor = "#FFDD00"   # Warna kuning khas BuyMeACoffee
+  globalWidgetPosition = "right"  # Posisi widget melayang di kanan bawah
+
 
 [verification]
   # google = ""
@@ -191,3 +192,4 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
 
 [advertisement]
   # adsense = ""
+
