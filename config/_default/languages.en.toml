@@ -2,7 +2,7 @@ disabled = false
 locale = "en"
 label = "English"
 weight = 1
-title = "Home"
+title = " "
 
 [params]
   displayName = "EN"
@@ -15,8 +15,8 @@ title = "Home"
   copyright = "© 2026 Adien Dendra"
 
 [params.author]
-   name = "Coming Soon.."
-   email = "youremail@example.com"
+#   name = "Coming Soon.."
+#   email = "youremail@example.com"
 #   image = "img/blowfish_logo.png"
 #   imageQuality = 96
 #   headline = "I'm only human"
