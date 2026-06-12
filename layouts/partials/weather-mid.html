@@ -1,0 +1,202 @@
+<style>
+    .telemetry-container {
+        background-color: transparent !important;
+    }
+    
+    /* Grid Lines Sumbu Grafik */
+    .chart-grid-line { stroke: #e5e7eb; }
+    .dark .chart-grid-line { stroke: #262626; }
+    
+    /* Font Size Scaler Mikro SVG */
+    .svg-text-micro { font-size: 10px !important; }
+    .svg-text-small { font-size: 11px !important; }
+    
+    /* Paksa Ukuran Font Legenda Menjadi Mikro & Pas via CSS Murni */
+    .font-size-micro { font-size: 12px !important; line-height: 12px !important; }
+    
+    /* Paksa Jarak (Gap) Legenda via CSS Murni */
+    .legend-gap {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 12px 28px !important;
+    }
+    
+    /* Diferensiasi Warna Komponen Cuaca (Purple, Teal, Orange) */
+    .color-wave { color: #9522ac; }
+    .dark .color-wave { color: #d96fee; }
+    
+    .color-swell { color: #13a0a0; }
+    .dark .color-swell { color: #56f8f8; }
+    
+    .color-tide { color: #ea580c; }
+    .dark .color-tide { color: #fb923c; }
+    
+    /* Interaktivitas Node Titik Data */
+    .graph-dot { 
+        transition: transform 0.1s ease, r 0.1s ease; 
+        cursor: pointer; 
+    }
+    .graph-dot:hover { 
+        r: 6px; 
+    }
+</style>
+
+<div class="w-full space-y-3 text-neutral-600 dark:text-neutral-400">
+    
+    <div class="flex justify-center items-center w-full">
+        <h3 class="text-s font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+            WAVE SWELL AND TIDE GRAPH
+        </h3>
+    </div>
+
+    <div class="telemetry-container py-2 font-mono relative overflow-x-auto select-none">
+        <div class="min-w-[750px] w-full">
+            <svg id="ocean-telemetry-svg" viewBox="0 0 900 320" class="w-full h-auto" xmlns="http://www.w3.org/2000/svg">
+                
+                <line x1="60" y1="30"  x2="840" y2="30"  class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="55"  x2="840" y2="55"  class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="80"  x2="840" y2="80"  class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="105" x2="840" y2="105" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="130" x2="840" y2="130" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="155" x2="840" y2="155" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="180" x2="840" y2="180" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="205" x2="840" y2="205" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="230" x2="840" y2="230" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="255" x2="840" y2="255" class="chart-grid-line" stroke-width="1" />
+                <line x1="60" y1="280" x2="840" y2="280" class="chart-grid-line" stroke-width="1" />
+                
+                <line x1="60" y1="45" x2="745" y2="45" stroke="#ef4444" stroke-width="1" stroke-dasharray="3 3" opacity="0.85" />
+                <text x="752" y="48" fill="#ef4444" class="svg-text-micro font-bold tracking-widest">-DANGEROUS ZONE</text>
+
+                <line x1="60" y1="20" x2="60" y2="290" stroke="currentColor" stroke-width="1" opacity="0.15" />
+                <line x1="840" y1="20" x2="840" y2="290" stroke="currentColor" stroke-width="1" opacity="0.15" />
+                <line x1="60" y1="280" x2="840" y2="280" stroke="currentColor" stroke-width="1" opacity="0.3" />
+
+                <text x="55" y="10" fill="currentColor" text-anchor="end" class="svg-text-micro opacity-50">Height(m)</text>
+                <text x="50" y="34" fill="currentColor" text-anchor="end" class="svg-text-small">2.50</text>
+                <text x="50" y="59" fill="currentColor" text-anchor="end" class="svg-text-small">2.25</text>
+                <text x="50" y="84" fill="currentColor" text-anchor="end" class="svg-text-small">2.00</text>
+                <text x="50" y="109" fill="currentColor" text-anchor="end" class="svg-text-small">1.75</text>
+                <text x="50" y="134" fill="currentColor" text-anchor="end" class="svg-text-small">1.50</text>
+                <text x="50" y="159" fill="currentColor" text-anchor="end" class="svg-text-small">1.25</text>
+                <text x="50" y="184" fill="currentColor" text-anchor="end" class="svg-text-small">1.00</text>
+                <text x="50" y="209" fill="currentColor" text-anchor="end" class="svg-text-small">0.75</text>
+                <text x="50" y="234" fill="currentColor" text-anchor="end" class="svg-text-small">0.50</text>
+                <text x="50" y="259" fill="currentColor" text-anchor="end" class="svg-text-small">0.25</text>
+                <text x="50" y="284" fill="currentColor" text-anchor="end" class="svg-text-micro opacity-50">0.00</text>
+
+                <text x="848" y="10" fill="currentColor" text-anchor="start" class="svg-text-micro opacity-50">Period(s)</text>
+                <text x="848" y="34" fill="currentColor" text-anchor="start" class="svg-text-small">20s</text>
+                <text x="848" y="59" fill="currentColor" text-anchor="start" class="svg-text-small">18s</text>
+                <text x="848" y="84" fill="currentColor" text-anchor="start" class="svg-text-small">16s</text>
+                <text x="848" y="109" fill="currentColor" text-anchor="start" class="svg-text-small">14s</text>
+                <text x="848" y="134" fill="currentColor" text-anchor="start" class="svg-text-small">12s</text>
+                <text x="848" y="159" fill="currentColor" text-anchor="start" class="svg-text-small">10s</text>
+                <text x="848" y="184" fill="currentColor" text-anchor="start" class="svg-text-small">8s</text>
+                <text x="848" y="209" fill="currentColor" text-anchor="start" class="svg-text-small">6s</text>
+                <text x="848" y="234" fill="currentColor" text-anchor="start" class="svg-text-small">4s</text>
+                <text x="848" y="259" fill="currentColor" text-anchor="start" class="svg-text-small">2s</text>
+                <text x="848" y="284" fill="currentColor" text-anchor="start" class="svg-text-micro opacity-50">0s</text>
+
+                <text x="60" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">00:00</text>
+                <text x="190" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">04:00</text>
+                <text x="320" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">08:00</text>
+                <text x="450" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">12:00</text>
+                <text x="580" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">16:00</text>
+                <text x="710" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">20:00</text>
+                <text x="840" y="304" fill="currentColor" text-anchor="middle" class="svg-text-small">24:00</text>
+
+                <path d="M 60 155 L 190 130 L 320 105 L 450 70 L 580 115 L 710 180 L 840 195" fill="none" stroke="currentColor" class="color-wave" stroke-width="1.2" />
+                <circle cx="60" cy="155" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="190" cy="130" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="320" cy="105" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="450" cy="70" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="580" cy="115" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="710" cy="180" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <circle cx="840" cy="195" r="2.5" fill="currentColor" class="color-wave graph-dot" />
+                <text x="320" y="93" fill="currentColor" text-anchor="middle" class="color-wave svg-text-micro font-bold">(Wave: 1.75m)</text>
+                <text x="450" y="58" fill="currentColor" text-anchor="middle" class="color-wave svg-text-micro font-bold">(Wave: 2.10m)</text>
+
+                <path d="M 60 180 L 190 168 L 320 142 L 450 130 L 580 155 L 710 205 L 840 218" fill="none" stroke="currentColor" class="color-swell" stroke-width="1" stroke-dasharray="3 2" opacity="0.85" />
+                <circle cx="60" cy="180" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="190" cy="168" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="320" cy="142" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="450" cy="130" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="580" cy="155" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="710" cy="205" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <circle cx="840" cy="218" r="1.5" fill="currentColor" class="color-swell graph-dot" />
+                <text x="450" y="118" fill="currentColor" text-anchor="middle" class="color-swell svg-text-micro">Swell: 1.50m</text>
+
+                <path d="M 60 160 L 190 230 L 320 135 L 385 105 L 450 135 L 580 230 L 710 135 L 775 95 L 840 120" fill="none" stroke="currentColor" class="color-tide" stroke-width="1.5" stroke-dasharray="1 2" />
+                <circle cx="60" cy="160" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="190" cy="230" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="320" cy="135" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="385" cy="105" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="450" cy="135" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="580" cy="230" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="710" cy="135" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="775" cy="95" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <circle cx="840" cy="120" r="2" fill="currentColor" class="color-tide graph-dot" />
+                <text x="190" y="246" fill="currentColor" text-anchor="middle" class="color-tide svg-text-micro">(Tide: 0.50m)</text>
+                <text x="775" y="83" fill="currentColor" text-anchor="middle" class="svg-text-micro font-bold color-tide">(Tide: 1.85m ↗)</text>
+
+                <line id="current-time-line" x1="-10" y1="25" x2="-10" y2="280" stroke="#FFDD00" stroke-width="1.5" opacity="0.8" />
+                <text id="current-time-text" x="-10" y="20" fill="#FFDD00" text-anchor="middle" class="svg-text-micro font-bold" style="background: white;"></text>
+            </svg>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-3 font-size-micro text-neutral-500 dark:text-neutral-400">
+            <div class="legend-gap">
+                <div class="flex items-center gap-1"><span class="color-wave">——•</span><span class="font-bold text-neutral-700 dark:text-neutral-300">Wave Height</span></div>
+                <div class="flex items-center gap-1"><span class="color-swell">- - •</span><span class="font-bold text-neutral-700 dark:text-neutral-300">Swell Height</span></div>
+                <div class="flex items-center gap-1"><span class="color-tide">┈┈●</span><span class="font-bold text-neutral-700 dark:text-neutral-300">Tide Level</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        function updateCurrentTimeIndicator() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            
+            // Total lebar sumbu X grafik adalah dari x=60 (00:00) ke x=840 (24:00) -> total 780px.
+            // 780px / 24 jam = 32.5px per jam.
+            const startX = 60;
+            const pxPerHour = 32.5;
+            
+            // Hitung posisi X presisi
+            const currentX = startX + (hours * pxPerHour) + (minutes * (pxPerHour / 60));
+            
+            const line = document.getElementById('current-time-line');
+            const text = document.getElementById('current-time-text');
+            
+            if (line && text) {
+                // Pastikan penanda hanya muncul jika berada dalam rentang box grafik
+                if (currentX >= 60 && currentX <= 840) {
+                    line.setAttribute('x1', currentX);
+                    line.setAttribute('x2', currentX);
+                    
+                    text.setAttribute('x', currentX);
+                    // Format text jam:menit (misal 14:05)
+                    const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    text.textContent = `CURRENT TIME(${formattedTime})`;
+                    
+                    line.style.display = 'block';
+                    text.style.display = 'block';
+                } else {
+                    line.style.display = 'none';
+                    text.style.display = 'none';
+                }
+            }
+        }
+
+        // Jalankan saat load pertama kali
+        updateCurrentTimeIndicator();
+        // Update setiap 30 detik agar jarum waktu bergerak presisi
+        setInterval(updateCurrentTimeIndicator, 30000);
+    })();
+</script>
