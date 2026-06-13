@@ -6,11 +6,34 @@
     if (currentPath.startsWith("/documentation") || currentPath.startsWith("/weather")) {
       const style = document.createElement("style");
       style.innerHTML = `
-        /* 1. Aturan Global Body untuk kedua modul halaman */
+        /* 1. Aturan Global Body & Batas Lebar */
         body {
             max-width: 1280px !important;
-            padding-left: 2.5rem !important;
-            padding-right: 2.5rem !important;
+        }
+
+        /* RESPONSIVITAS GAP: Hanya terapkan padding lebar di Desktop (min-width: 768px) */
+        @media (min-width: 768px) {
+            body {
+                padding-left: 2.5rem !important;
+                padding-right: 2.5rem !important;
+            }
+        }
+
+        /* RESPONSIVITAS GAP: Sesuaikan untuk Mobile (max-width: 767px) */
+        @media (max-width: 767px) {
+            body {
+                /* Perkecil padding agar ruang baca di HP jauh lebih luas */
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+            
+            /* Khusus kontainer grafik telemetry agar bisa scroll full-bleed dari ujung ke ujung layar HP */
+            .telemetry-container {
+                margin-left: -1rem !important;
+                margin-right: -1rem !important;
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
         }
 
         /* 2. Dobrak batas lebar kontainer internal (Documentation & Weather) */

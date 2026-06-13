@@ -5,24 +5,49 @@
     .live-ping-animation { animation: faultless-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
     @keyframes faultless-ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
 
-    /* FIXED HEADER ROW LAYOUT */
-    .geo-header-row { display: flex !important; flex-direction: column !important; gap: 12px !important; width: 100% !important; }
-    .geo-left-group { display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important; }
-    .geo-input-wrapper { display: flex !important; align-items: center !important; gap: 10px !important; flex: 1 1 auto !important; min-width: 0 !important; }
-    .geo-input-field { width: 100% !important; min-width: 0 !important; }
+    /* LAYOUT UTAMA UTK HEADER KONTROL (MOBILE: STACKED GRID) */
+    .geo-header-row { display: flex !important; flex-direction: column !important; gap: 14px !important; width: 100% !important; }
+    .geo-left-group { display: flex !important; flex-direction: column !important; width: 100% !important; }
+    
+    /* Grid Engine untuk Mobile (2 Kolom) */
+    .geo-fields-container { 
+        display: grid !important; 
+        grid-template-columns: 1fr auto !important; 
+        gap: 10px !important; 
+        width: 100% !important; 
+    }
+    .geo-loc-wrapper { grid-column: span 2 !important; } /* Baris 1: Full-width */
+    .geo-date-wrapper { grid-column: span 1 !important; } /* Baris 2 */
+    
+    .geo-input-wrapper { display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important; }
+    .geo-input-field, .geo-select-field { width: 100% !important; min-width: 0 !important; }
+    
+    /* Membuat teks label "Location:" dan "Date:" sejajar rata kiri pada mobile */
+    .geo-label { min-width: 70px !important; display: inline-block !important; flex-shrink: 0 !important; }
+    
+    /* UBAHAN DISINI: Data Updated rata kiri di mobile */
     .geo-right-group { text-align: left !important; width: 100% !important; }
 
+    /* RESPONSIVITAS DESKTOP (BREAKPOINT SM / 640px ke atas) */
     @media (min-width: 640px) {
         .geo-header-row { flex-direction: row !important; justify-content: space-between !important; align-items: center !important; }
-        .geo-left-group { width: auto !important; }
-        .geo-input-wrapper { width: auto !important; flex: none !important; }
-        .geo-input-field { width: 170px !important; max-width: 170px !important; }
+        .geo-left-group { flex-direction: row !important; align-items: center !important; width: auto !important; }
+        
+        .geo-fields-container { display: flex !important; flex-wrap: nowrap !important; width: auto !important; }
+        .geo-loc-wrapper, .geo-date-wrapper { grid-column: auto !important; width: auto !important; flex: none !important; }
+        
+        .geo-input-field { width: 180px !important; max-width: 180px !important; }
+        .geo-select-field { width: 180px !important; max-width: 180px !important; }
+        .geo-label { min-width: auto !important; }
+        
+        /* Kembalikan rata kanan saat di desktop */
         .geo-right-group { text-align: right !important; width: auto !important; }
     }
 
+    /* TOMBOL CHECK */
     .geo-check-btn {
         background-color: #2563eb !important; color: #ffffff !important; font-weight: 600 !important;
-        padding: 4px 14px !important; border-radius: 6px !important; border: none !important;
+        padding: 5px 14px !important; border-radius: 6px !important; border: none !important;
         cursor: pointer !important; display: inline-flex !important; align-items: center !important;
         justify-content: center !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
         flex-shrink: 0 !important; transition: background-color 0.1s ease-in-out, transform 0.05s ease !important;
@@ -35,24 +60,40 @@
 </style>
 
 <div class="w-full space-y-4">
-    <div class="geo-header-row text-xs md:text-sm text-neutral-600 dark:text-neutral-400 font-mono">
+    <div class="geo-header-row text-sm md:text-base text-neutral-600 dark:text-neutral-400 font-mono">
+        
         <div class="geo-left-group font-sans">
-            <label for="location-input" class="font-medium text-neutral-800 dark:text-neutral-200 shrink-0">Location:</label>
-            <div class="geo-input-wrapper">
-                <input 
-                    type="text" 
-                    id="location-input" 
-                    name="location" 
-                    placeholder="Botany Bay" 
-                    class="geo-input-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-xs sm:text-sm text-neutral-800 dark:text-neutral-100 font-mono placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                />
-                <button type="button" id="weather-check-btn" class="geo-check-btn text-xs sm:text-sm">Check</button>
+            <div class="geo-fields-container">
+                
+                <div class="geo-input-wrapper geo-loc-wrapper">
+                    <label for="location-input" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Location:</label>
+                    <input 
+                        type="text" 
+                        id="location-input" 
+                        name="location" 
+                        placeholder="Botany Bay" 
+                        class="geo-input-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    />
+                </div>
+                
+                <div class="geo-input-wrapper geo-date-wrapper">
+                    <label for="date-select" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Date:</label>
+                    <select 
+                        id="date-select" 
+                        name="date" 
+                        class="geo-select-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-2 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                    >
+                        </select>
+                </div>
+
+                <button type="button" id="weather-check-btn" class="geo-check-btn text-sm sm:text-base">Check</button>
+                
             </div>
         </div>
 
-        <div class="geo-right-group text-neutral-600 dark:text-neutral-400 font-mono">
-            <span>Updated: </span>
-            <span class="font-semibold text-neutral-800 dark:text-neutral-200">May 20, 16:00 AEST</span>
+        <div class="geo-right-group text-neutral-600 dark:text-neutral-400 font-mono self-start sm:self-center pt-0.5 sm:pt-0">
+            <span>Data Updated: <strong>Sun, 14 Jun 16:00 AEST</strong></span>            
+            <span class="text-xs opacity-60 block sm:inline font-sans"> (Next update in ~3 hours)</span>
         </div>
     </div>
 
@@ -64,14 +105,14 @@
                 <span class="status-indicator-dot live-ping-animation absolute inline-flex h-full w-full rounded-full opacity-75"></span>
                 <span class="status-indicator-dot relative inline-flex rounded-full h-2.5 w-2.5"></span>
             </span>
-            <p class="leading-relaxed status-text-green">
+            <p class="text-base leading-relaxed status-text-green">
                 <strong>SAFETY STATUS:</strong> CONDITIONALLY SAFE <span class="text-neutral-500 dark:text-neutral-400">(Watch for Choppy Swells)</span>
             </p>
         </div>
 
         <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
-        <div class="flex flex-row justify-between items-center text-xs sm:text-sm font-mono text-neutral-600 dark:text-neutral-400 pt-1 w-full">
+        <div class="flex flex-row justify-between items-center text-sm sm:text-base font-mono text-neutral-600 dark:text-neutral-400 pt-1 w-full">
             <div class="w-1/3 flex items-center justify-start gap-1">
                 <span>🌅 Sunrise:</span>
                 <span class="font-semibold text-neutral-800 dark:text-neutral-200">06:50 AM</span>
@@ -87,3 +128,44 @@
         </div>
     </div>
 </div>
+
+<script>
+    (function() {
+        function generateForecastDays() {
+            const dateSelect = document.getElementById('date-select');
+            if (!dateSelect) return;
+
+            dateSelect.innerHTML = '';
+
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            for (let i = 0; i < 7; i++) {
+                const targetDate = new Date();
+                targetDate.setDate(targetDate.getDate() + i);
+
+                const year = targetDate.getFullYear();
+                const monthValue = String(targetDate.getMonth() + 1).padStart(2, '0');
+                const dayValue = String(targetDate.getDate()).padStart(2, '0');
+                const valueISO = `${year}-${monthValue}-${dayValue}`;
+
+                const dayName = daysOfWeek[targetDate.getDay()];
+                const dayNum = targetDate.getDate();
+                const monthName = months[targetDate.getMonth()];
+                
+                let labelText = `${dayName}, ${dayNum} ${monthName}`;
+                if (i === 0) {
+                    labelText = `Today (${labelText})`;
+                } else if (i === 1) {
+                    labelText = `Tomorrow (${labelText})`;
+                }
+
+                const option = document.createElement('option');
+                option.value = valueISO;
+                option.textContent = labelText;
+                dateSelect.appendChild(option);
+            }
+        }
+        generateForecastDays();
+    })();
+</script>

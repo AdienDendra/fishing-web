@@ -85,7 +85,7 @@
             <line x1="840" y1="20" x2="840" y2="290" stroke="currentColor" stroke-width="1" opacity="0.15" />
             <line x1="60" y1="280" x2="840" y2="280" stroke="currentColor" stroke-width="1" opacity="0.3" />
 
-            <text x="55" y="15" fill="currentColor" text-anchor="end" class="svg-text-micro opacity-50">Height(m)</text>
+            <text x="55" y="10" fill="currentColor" text-anchor="end" class="svg-text-micro opacity-50">Height(m)</text>
             <text x="50" y="34" fill="currentColor" text-anchor="end" class="svg-text-small">3.00</text>
             <text x="50" y="59" fill="currentColor" text-anchor="end" class="svg-text-small">2.75</text>
             <text x="50" y="84" fill="currentColor" text-anchor="end" class="svg-text-small">2.50</text>
@@ -98,7 +98,7 @@
             <text x="50" y="259" fill="currentColor" text-anchor="end" class="svg-text-small">0.75</text>
             <text x="50" y="284" fill="currentColor" text-anchor="end" class="svg-text-micro opacity-50">0.50</text>
 
-            <text x="848" y="15" fill="currentColor" text-anchor="start" class="svg-text-micro opacity-50">Period(s)</text>
+            <text x="848" y="10" fill="currentColor" text-anchor="start" class="svg-text-micro opacity-50">Period(s)</text>
             <text x="848" y="34" fill="currentColor" text-anchor="start" class="svg-text-small">20s</text>
             <text x="848" y="59" fill="currentColor" text-anchor="start" class="svg-text-small">18s</text>
             <text x="848" y="84" fill="currentColor" text-anchor="start" class="svg-text-small">16s</text>
@@ -191,7 +191,7 @@
                     
                     text.setAttribute('x', currentX);
                     const formattedTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    text.textContent = `CURRENT TIME(${formattedTime})`;
+                    text.textContent = `CURRENT TIME (${formattedTime})`;
                     
                     line.style.display = 'block';
                     text.style.display = 'block';
