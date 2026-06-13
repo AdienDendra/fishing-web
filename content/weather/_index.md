@@ -1,4 +1,4 @@
 ---
-title: "🌊 Live Dashboard Forecast"
+title: "Live Dashboard Forecast"
 ---
 {{< weather-page >}}

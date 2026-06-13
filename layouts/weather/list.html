@@ -1,18 +1,15 @@
 {{ define "main" }}
-<div style="width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw;">
+<div class="custom-wide-container">
     
-    <div style="width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 1rem;">
-        
-        <header class="mb-8 text-left">
-            <h1 class="text-3xl font-extrabold text-neutral-900 dark:text-neutral-100 sm:text-4xl">
-                {{ .Title }}
-            </h1>
-        </header>
+    <header class="mb-8 text-left">
+        <h1 class="text-3xl font-extrabold text-neutral-900 dark:text-neutral-100 sm:text-4xl">
+            {{ .Title }}
+        </h1>
+    </header>
 
-        <div class="w-full">
-            {{ .Content }}
-        </div>
-
+    <div class="w-full">
+        {{ .Content }}
     </div>
+
 </div>
 {{ end }}

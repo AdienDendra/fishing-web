@@ -1,0 +1,29 @@
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const currentPath = window.location.pathname;
+    
+    // Mengecek apakah URL diawali dengan /documentation ATAU /weather
+    if (currentPath.startsWith("/documentation") || currentPath.startsWith("/weather")) {
+      const style = document.createElement("style");
+      style.innerHTML = `
+        /* 1. Aturan Global Body untuk kedua modul halaman */
+        body {
+            max-width: 1280px !important;
+            padding-left: 2.5rem !important;
+            padding-right: 2.5rem !important;
+        }
+
+        /* 2. Dobrak batas lebar kontainer internal (Documentation & Weather) */
+        #single_header,
+        .max-w-prose,
+        .prose,
+        article,
+        .custom-wide-container {
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  });
+</script>
