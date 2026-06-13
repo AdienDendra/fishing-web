@@ -1,7 +1,4 @@
 ---
-title: "Fishing Weather Forecast"
+title: "🌊 Live Dashboard Forecast"
 ---
-
-### 🌊 Live Dashboard Components
-
 {{< weather-page >}}

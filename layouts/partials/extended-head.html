@@ -16,3 +16,15 @@
     });
   }
 </script>
+
+{{ if eq .Layout "docs" }}
+<style>
+    /* Mendobrak seluruh layer pembatas lebar bawaan tema Blowfish */
+    .prose, 
+    .max-w-prose, 
+    .max-w-3xl, 
+    .lg\:max-w-3xl {
+        max-width: 1280px !important; /* Anda bisa menggantinya ke 1440px atau 100% sesuai kebutuhan */
+    }
+</style>
+{{ end }}
