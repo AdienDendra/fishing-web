@@ -68,3 +68,10 @@ article {
 h2:not(article h2):not(.prose h2) {
     display: none !important;
 }
+
+/* Ukuran logo */
+
+.logo svg {
+  height: 3rem;  /* coba 2rem, 2.5rem, 3rem */
+  width: auto;
+}

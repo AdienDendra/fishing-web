@@ -20,6 +20,8 @@ replyByEmail = false
 # mainSections = ["section1", "section2"]
 # robots = ""
 
+logo = "img/logo.svg"
+
 disableImageOptimization = false
 disableImageOptimizationMD = false
 disableTextInHeader = false
