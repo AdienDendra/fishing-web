@@ -77,25 +77,22 @@ h2:not(article h2):not(.prose h2) {
 }
 
 /* ==========================================================================
-   OVERRIDE BLOWFISH max-w-7xl UNTUK WEATHER & DOCUMENTATION
+   OVERRIDE BLOWFISH BODY WIDTH & PADDING
    ========================================================================== */
 
-/* Target langsung Tailwind class yang di-hardcode Blowfish di <body> */
 body[class*="max-w-7xl"] {
     max-width: 1360px !important;
 }
 
-/* Padding desktop */
-@media (min-width: 768px) {
-    body[class*="max-w-7xl"] {
-        padding-left: 2.5rem !important;
-        padding-right: 2.5rem !important;
-    }
+/* Override semua responsive padding Blowfish (px-6 sm:px-14 md:px-24 lg:px-32) */
+body[class*="px-6"],
+body[class*="lg:px-32"] {
+    padding-left: 2.5rem !important;
+    padding-right: 2.5rem !important;
 }
 
-/* Padding mobile */
 @media (max-width: 767px) {
-    body[class*="max-w-7xl"] {
+    body[class*="px-6"] {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
     }
