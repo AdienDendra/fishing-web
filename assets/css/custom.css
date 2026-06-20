@@ -76,41 +76,6 @@ h2:not(article h2):not(.prose h2) {
   width: auto;
 }
 
-/* ==========================================================================
-   OVERRIDE BLOWFISH BODY WIDTH & PADDING
-   ========================================================================== */
-
-body[class*="max-w-7xl"] {
-    max-width: 1360px !important;
-}
-
-/* Override semua responsive padding Blowfish (px-6 sm:px-14 md:px-24 lg:px-32) */
-body[class*="px-6"],
-body[class*="lg:px-32"] {
-    padding-left: 2.5rem !important;
-    padding-right: 2.5rem !important;
-}
-
-@media (max-width: 767px) {
-    body[class*="px-6"] {
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-
-    .telemetry-container {
-        margin-left: -1rem !important;
-        margin-right: -1rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
-    }
-}
-
-/* Dobrak batas internal container */
-#single_header,
-.max-w-prose,
-.prose,
-article,
-.custom-wide-container {
-    max-width: 100% !important;
-    width: 100% !important;
+body {
+    max-width: 1280px !important;
 }
