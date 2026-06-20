@@ -75,3 +75,45 @@ h2:not(article h2):not(.prose h2) {
   height: 3rem;  /* coba 2rem, 2.5rem, 3rem */
   width: auto;
 }
+
+/* ==========================================================================
+   OVERRIDE BLOWFISH max-w-7xl UNTUK WEATHER & DOCUMENTATION
+   ========================================================================== */
+
+/* Target langsung Tailwind class yang di-hardcode Blowfish di <body> */
+body[class*="max-w-7xl"] {
+    max-width: 1360px !important;
+}
+
+/* Padding desktop */
+@media (min-width: 768px) {
+    body[class*="max-w-7xl"] {
+        padding-left: 2.5rem !important;
+        padding-right: 2.5rem !important;
+    }
+}
+
+/* Padding mobile */
+@media (max-width: 767px) {
+    body[class*="max-w-7xl"] {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    .telemetry-container {
+        margin-left: -1rem !important;
+        margin-right: -1rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+/* Dobrak batas internal container */
+#single_header,
+.max-w-prose,
+.prose,
+article,
+.custom-wide-container {
+    max-width: 100% !important;
+    width: 100% !important;
+}
