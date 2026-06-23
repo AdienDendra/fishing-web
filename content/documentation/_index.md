@@ -4,4 +4,4 @@ layout: "docs"
 weight: 1
 ---
 
-This documentation decoupled by three phases
+This technical documentation is broken down into three phases.
