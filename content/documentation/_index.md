@@ -1,5 +1,5 @@
 ---
-title: "From VPS to Serverless: Migrating Bot-Mancing to AWS"
+title: "Migrating Bot-Mancing to AWS (From VPS to Serverless)"
 layout: "docs"
 weight: 1
 ---

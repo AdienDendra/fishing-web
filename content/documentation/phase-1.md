@@ -1,5 +1,5 @@
 ---
-title: "Phase 1: AWS Serverless Backend"
+title: "AWS Serverless Backend (Phase 1)"
 date: 2025-05-03T17:58:00+10:00
 lastmod: 2026-06-23T10:47:00+10:00
 weight: 20
