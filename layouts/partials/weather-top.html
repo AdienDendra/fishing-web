@@ -1,3 +1,6 @@
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <style>
     .status-indicator-dot { background-color: #10b981; }
     .status-text-green { color: #059669; }
@@ -25,7 +28,7 @@
     /* Membuat teks label "Location:" dan "Date:" sejajar rata kiri pada mobile */
     .geo-label { min-width: 70px !important; display: inline-block !important; flex-shrink: 0 !important; }
     
-    /* UBAHAN DISINI: Data Updated rata kiri di mobile */
+    /* Data Updated rata kiri di mobile */
     .geo-right-group { text-align: left !important; width: 100% !important; }
 
     /* RESPONSIVITAS DESKTOP (BREAKPOINT SM / 640px ke atas) */
@@ -57,14 +60,67 @@
     .dark .geo-check-btn { background-color: #3b82f6 !important; }
     .dark .geo-check-btn:hover { background-color: #2563eb !important; }
     .dark .geo-check-btn:active { transform: scale(0.93) !important; background-color: #1d4ed8 !important; }
-
-    /* TOMBOL DISABLED STATE */
     .geo-check-btn:disabled { opacity: 0.6 !important; cursor: not-allowed !important; transform: none !important; }
+
+    /* TOMBOL MAP TRIGGER TRIGGER (📍) */
+    .geo-map-trigger-btn {
+        background-color: #e5e7eb !important; border: 1px solid #d1d5db !important;
+        border-radius: 6px !important; padding: 0 10px !important; cursor: pointer !important;
+        display: inline-flex !important; align-items: center !important; justify-content: center !important;
+        height: 34px !important; transition: background-color 0.1s ease !important;
+    }
+    .geo-map-trigger-btn:hover { background-color: #d1d5db !important; }
+    .dark .geo-map-trigger-btn { background-color: #262626 !important; border-color: #404040 !important; }
+    .dark .geo-map-trigger-btn:hover { background-color: #404040 !important; }
+
+    /* STYLING MODAL OPENSTREETMAP (DARK THEME COMPATIBLE) */
+    .geo-modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); z-index: 99999; align-items: center; justify-content: center;
+        padding: 16px;
+    }
+    .geo-modal-content {
+        background-color: #ffffff; border-radius: 8px; width: 100%; max-width: 850px;
+        height: 80vh; max-height: 520px; display: flex; flex-direction: column; overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+    .dark .geo-modal-content { background-color: #171717; border: 1px solid #262626; }
+    
+    .geo-modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .dark .geo-modal-header { border-bottom-color: #262626; }
+    .geo-modal-title { font-weight: 600; color: #1f2937; }
+    .dark .geo-modal-title { color: #f3f4f6; }
+    .geo-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #6b7280; }
+    .dark .geo-modal-close { color: #a3a3a3; }
+    
+    .geo-modal-body { display: flex; flex: 1; min-height: 0; flex-direction: column; }
+    @media (min-width: 640px) { .geo-modal-body { flex-direction: row; } }
+    
+    .geo-map-sidebar { width: 100%; max-height: 140px; overflow-y: auto; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+    @media (min-width: 640px) { .geo-map-sidebar { width: 32%; max-height: none; border-bottom: none; border-right: 1px solid #e5e7eb; } }
+    .dark .geo-map-sidebar { background-color: #1c1c1c; border-color: #262626; }
+    
+    .geo-spot-list { list-style: none; padding: 0; margin: 0; }
+    .geo-spot-item {
+        padding: 10px 14px; border-bottom: 1px solid #e5e7eb; cursor: pointer;
+        font-size: 13px; color: #4b5563; transition: background-color 0.1s;
+    }
+    .dark .geo-spot-item { border-bottom-color: #262626; color: #d4d4d4; }
+    .geo-spot-item:hover, .geo-spot-item.active { background-color: #eff6ff; color: #1d4ed8; }
+    .dark .geo-spot-item:hover, .dark .geo-spot-item.active { background-color: #1e3a8a; color: #eff6ff; }
+    
+    #geo-osm-render-zone { width: 100%; flex: 1; min-height: 240px; }
+    @media (min-width: 640px) { #geo-osm-render-zone { width: 68%; height: 100%; } }
+
+    /* Fix invert warna map tile jika server menggunakan global dark reader, biarkan tile default */
+    .leaflet-tile-container { filter: none !important; }
 </style>
 
 <div class="w-full space-y-4">
 
-    <!-- Partial status banner — shown when AI analysis is still processing -->
     <div id="partial-status-banner" style="display:none;" class="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded px-3 py-1.5">
         ⏳ AI analysis is processing in the background. Data will auto-refresh shortly.
     </div>
@@ -76,13 +132,16 @@
                 
                 <div class="geo-input-wrapper geo-loc-wrapper">
                     <label for="location-input" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Location:</label>
-                    <input 
-                        type="text" 
-                        id="location-input" 
-                        name="location" 
-                        placeholder="Botany Bay" 
-                        class="geo-input-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                    />
+                    <div style="display: flex !important; width: 100% !important; gap: 6px !important;">
+                        <input 
+                            type="text" 
+                            id="location-input" 
+                            name="location" 
+                            placeholder="Botany Bay" 
+                            class="geo-input-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        />
+                        <button type="button" id="geo-map-trigger" class="geo-map-trigger-btn" title="Select location from Map">📍</button>
+                    </div>
                 </div>
                 
                 <div class="geo-input-wrapper geo-date-wrapper">
@@ -92,7 +151,7 @@
                         name="date" 
                         class="geo-select-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-2 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
                     >
-                        </select>
+                    </select>
                 </div>
 
                 <button type="button" id="weather-check-btn" class="geo-check-btn text-sm sm:text-base">Check</button>
@@ -138,6 +197,27 @@
     </div>
 </div>
 
+<div id="geo-map-modal-container" class="geo-modal-overlay">
+    <div class="geo-modal-content font-sans">
+        <div class="geo-modal-header">
+            <span class="geo-modal-title text-sm sm:text-base">Select Fishing Spot (Sydney Coast)</span>
+            <button type="button" id="geo-modal-close-x" class="geo-modal-close">&times;</button>
+        </div>
+        <div class="geo-modal-body">
+            <div class="geo-map-sidebar">
+                <ul id="geo-spot-list-ul" class="geo-spot-list">
+                    <li class="geo-spot-item" data-id="Botany Bay" data-lat="-34.0024" data-lng="151.1822">Botany Bay</li>
+                    <li class="geo-spot-item" data-id="Bronte Beach" data-lat="-33.9031" data-lng="151.2683">Bronte Beach</li>
+                    <li class="geo-spot-item" data-id="Tamarama Beach" data-lat="-33.8994" data-lng="151.2676">Tamarama Beach</li>
+                    <li class="geo-spot-item" data-id="Maroubra Beach" data-lat="-33.9490" data-lng="151.2568">Maroubra Beach</li>
+                    <li class="geo-spot-item" data-id="Cape Solander" data-lat="-34.0194" data-lng="151.2312">Cape Solander</li>
+                </ul>
+            </div>
+            <div id="geo-osm-render-zone"></div>
+        </div>
+    </div>
+</div>
+
 <script>
     (function() {
         function generateForecastDays() {
@@ -177,6 +257,85 @@
         }
         generateForecastDays();
     })();
+
+    // INTEGRASI ENGINE INTERAKTIF LEAFLET MAPS
+    document.addEventListener("DOMContentLoaded", function() {
+        const modal = document.getElementById("geo-map-modal-container");
+        const openBtn = document.getElementById("geo-map-trigger");
+        const closeBtn = document.getElementById("geo-modal-close-x");
+        const locationInput = document.getElementById("location-input");
+        const checkBtn = document.getElementById("weather-check-btn");
+        const listItems = document.querySelectorAll("#geo-spot-list-ul .geo-spot-item");
+
+        let mapEngine;
+        let markersDataset = {};
+        const sydneyDefaultCenter = [-33.95, 151.23]; // Fokus koordinat area pesisir Sydney
+
+        function initOsmMap() {
+            if (mapEngine) return; // Mencegah re-inisialisasi instansiasi variabel peta
+
+            // Bangun peta dasar
+            mapEngine = L.map("geo-osm-render-zone").setView(sydneyDefaultCenter, 11);
+            
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(mapEngine);
+
+            // Mapping Marker dari element DOM HTML sidebar
+            listItems.forEach(item => {
+                const spotId = item.getAttribute("data-id");
+                const lat = parseFloat(item.getAttribute("data-lat"));
+                const lng = parseFloat(item.getAttribute("data-lng"));
+
+                // Desain balon popup marker map + tombol select internal
+                const markerInstance = L.marker([lat, lng]).addTo(mapEngine)
+                    .bindPopup(`
+                        <div style="font-family:sans-serif;font-size:13px;color:#111;">
+                            <strong style="display:block;margin-bottom:5px;">${spotId}</strong>
+                            <button type="button" class="geo-check-btn" style="padding:3px 10px !important;font-size:11px !important;border-radius:4px !important;cursor:pointer;" onclick="executeMapSelection('${spotId}')">Select Spot</button>
+                        </div>
+                    `);
+                
+                markersDataset[spotId] = markerInstance;
+
+                // Event ketika baris list menu kiri diklik
+                item.addEventListener("click", () => {
+                    listItems.forEach(el => el.classList.remove("active"));
+                    item.classList.add("active");
+                    mapEngine.flyTo([lat, lng], 13);
+                    markerInstance.openPopup();
+                });
+            });
+        }
+
+        // Fungsi Global untuk memproses aksi klik "Select Spot" dari dalam popup Leaflet
+        window.executeMapSelection = function(spotName) {
+            if (locationInput) {
+                locationInput.value = spotName;
+                locationInput.dispatchEvent(new Event('change'));
+                
+                // Otomatis trigger tombol "Check" bawaan komponen agar user tidak perlu klik dua kali
+                if (checkBtn) {
+                    checkBtn.click();
+                }
+            }
+            closeMapModal();
+        };
+
+        // Open Modal handler
+        openBtn.addEventListener("click", () => {
+            modal.style.display = "flex";
+            // Set timeout krusial agar engine leaflet menghitung ulang lebar canvas saat un-hide elemen (mencegah bug ubin peta abu-abu)
+            setTimeout(() => {
+                initOsmMap();
+                mapEngine.invalidateSize();
+            }, 120);
+        });
+
+        function closeMapModal() { modal.style.display = "none"; }
+        closeBtn.addEventListener("click", closeMapModal);
+        window.addEventListener("click", (e) => { if (e.target === modal) closeMapModal(); });
+    });
 </script>
 
-<script src="/js/weather-fetch.js"></script>
+<script src="./js/weather-fetch.js"></script>
