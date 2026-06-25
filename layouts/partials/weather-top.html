@@ -64,14 +64,14 @@
 
     /* TOMBOL MAP TRIGGER TRIGGER (📍) */
     .geo-map-trigger-btn {
-        background-color: #e5e7eb !important; border: 1px solid #d1d5db !important;
         border-radius: 6px !important; padding: 0 10px !important; cursor: pointer !important;
         display: inline-flex !important; align-items: center !important; justify-content: center !important;
         height: 34px !important; transition: background-color 0.1s ease !important;
     }
-    .geo-map-trigger-btn:hover { background-color: #d1d5db !important; }
-    .dark .geo-map-trigger-btn { background-color: #262626 !important; border-color: #404040 !important; }
-    .dark .geo-map-trigger-btn:hover { background-color: #404040 !important; }
+    .geo-map-trigger-btn { background-color: #3b82f6 !important; }
+    .geo-map-trigger-btn:hover { background-color: #2563eb !important; }
+    .dark .geo-map-trigger-btn { background-color: #3b82f6 !important; }
+    .dark .geo-map-trigger-btn:hover { background-color: #2563eb !important; }
 
     /* STYLING MODAL OPENSTREETMAP (DARK THEME COMPATIBLE) */
     .geo-modal-overlay {
@@ -84,7 +84,11 @@
         height: 80vh; max-height: 520px; display: flex; flex-direction: column; overflow: hidden;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
     }
-    .dark .geo-modal-content { background-color: #171717; border: 1px solid #262626; }
+    /* GANTI BARIS INI DI KODE ANDA */
+    .dark .geo-modal-content { 
+        background-color: #1E293B; /* Mengganti #171717 dengan warna dasar navy dashboard Anda */
+        border: 1px solid #2d3d4f; /* Mengganti #262626 dengan border biru gelap tipis agar rapi */
+    }
     
     .geo-modal-header {
         display: flex; justify-content: space-between; align-items: center;
@@ -95,9 +99,6 @@
     .dark .geo-modal-title { color: #f3f4f6; }
     .geo-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #6b7280; }
     .dark .geo-modal-close { color: #a3a3a3; }
-    
-    .geo-modal-body { display: flex; flex: 1; min-height: 0; flex-direction: column; }
-    @media (min-width: 640px) { .geo-modal-body { flex-direction: row; } }
     
     .geo-map-sidebar { width: 100%; max-height: 140px; overflow-y: auto; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; }
     @media (min-width: 640px) { .geo-map-sidebar { width: 32%; max-height: none; border-bottom: none; border-right: 1px solid #e5e7eb; } }
@@ -112,8 +113,7 @@
     .geo-spot-item:hover, .geo-spot-item.active { background-color: #eff6ff; color: #1d4ed8; }
     .dark .geo-spot-item:hover, .dark .geo-spot-item.active { background-color: #1e3a8a; color: #eff6ff; }
     
-    #geo-osm-render-zone { width: 100%; flex: 1; min-height: 240px; }
-    @media (min-width: 640px) { #geo-osm-render-zone { width: 68%; height: 100%; } }
+    #geo-osm-render-zone { width: 100%; flex: 1; min-height: 400px;}
 
     /* Fix invert warna map tile jika server menggunakan global dark reader, biarkan tile default */
     .leaflet-tile-container { filter: none !important; }
@@ -200,21 +200,10 @@
 <div id="geo-map-modal-container" class="geo-modal-overlay">
     <div class="geo-modal-content font-sans">
         <div class="geo-modal-header">
-            <span class="geo-modal-title text-sm sm:text-base">Select Fishing Spot (Sydney Coast)</span>
+            <span class="geo-modal-title text-sm sm:text-base">Select Fishing Spot (NSW Coast)</span>
             <button type="button" id="geo-modal-close-x" class="geo-modal-close">&times;</button>
         </div>
-        <div class="geo-modal-body">
-            <div class="geo-map-sidebar">
-                <ul id="geo-spot-list-ul" class="geo-spot-list">
-                    <li class="geo-spot-item" data-id="Botany Bay" data-lat="-34.0024" data-lng="151.1822">Botany Bay</li>
-                    <li class="geo-spot-item" data-id="Bronte Beach" data-lat="-33.9031" data-lng="151.2683">Bronte Beach</li>
-                    <li class="geo-spot-item" data-id="Tamarama Beach" data-lat="-33.8994" data-lng="151.2676">Tamarama Beach</li>
-                    <li class="geo-spot-item" data-id="Maroubra Beach" data-lat="-33.9490" data-lng="151.2568">Maroubra Beach</li>
-                    <li class="geo-spot-item" data-id="Cape Solander" data-lat="-34.0194" data-lng="151.2312">Cape Solander</li>
-                </ul>
-            </div>
-            <div id="geo-osm-render-zone"></div>
-        </div>
+        <div id="geo-osm-render-zone"></div>
     </div>
 </div>
 
@@ -265,46 +254,42 @@
         const closeBtn = document.getElementById("geo-modal-close-x");
         const locationInput = document.getElementById("location-input");
         const checkBtn = document.getElementById("weather-check-btn");
-        const listItems = document.querySelectorAll("#geo-spot-list-ul .geo-spot-item");
 
         let mapEngine;
         let markersDataset = {};
         const sydneyDefaultCenter = [-33.95, 151.23]; // Fokus koordinat area pesisir Sydney
 
         function initOsmMap() {
-            if (mapEngine) return; // Mencegah re-inisialisasi instansiasi variabel peta
+            if (mapEngine) return;
 
             // Bangun peta dasar
             mapEngine = L.map("geo-osm-render-zone").setView(sydneyDefaultCenter, 11);
             
+            // Anda bisa mengganti URL tile dengan mode gelap cartoDB jika openstreetmap biasa terlalu terang
             L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                attribution: '&copy; OpenStreetMap contributors'
             }).addTo(mapEngine);
 
-            // Mapping Marker dari element DOM HTML sidebar
-            listItems.forEach(item => {
-                const spotId = item.getAttribute("data-id");
-                const lat = parseFloat(item.getAttribute("data-lat"));
-                const lng = parseFloat(item.getAttribute("data-lng"));
+            // DATASET PIN LOKASI DITULIS DISINI (Karena list sidebar HTML dihapus)
+            const fishingSpots = [
+                { id: "Botany Bay", lat: -33.9944, lng: 151.1926 },
+                { id: "Bronte Beach", lat: -33.9029, lng: 151.2684 },
+                { id: "Tamarama Beach", lat: -33.8994, lng: 151.2711 },
+                { id: "Maroubra Beach", lat: -33.9491, lng: 151.2569 },
+                { id: "Cape Solander", lat: -34.0189, lng: 151.2294 }
+            ];
 
-                // Desain balon popup marker map + tombol select internal
-                const markerInstance = L.marker([lat, lng]).addTo(mapEngine)
+            // Render Marker ke map
+            fishingSpots.forEach(spot => {
+                const markerInstance = L.marker([spot.lat, spot.lng]).addTo(mapEngine)
                     .bindPopup(`
                         <div style="font-family:sans-serif;font-size:13px;color:#111;">
-                            <strong style="display:block;margin-bottom:5px;">${spotId}</strong>
-                            <button type="button" class="geo-check-btn" style="padding:3px 10px !important;font-size:11px !important;border-radius:4px !important;cursor:pointer;" onclick="executeMapSelection('${spotId}')">Select Spot</button>
+                            <strong style="display:block;margin-bottom:5px;">${spot.id}</strong>
+                            <button type="button" class="geo-check-btn" style="padding:3px 10px !important;font-size:11px !important;border-radius:4px !important;cursor:pointer;" onclick="executeMapSelection('${spot.id}')">Select Spot</button>
                         </div>
                     `);
                 
-                markersDataset[spotId] = markerInstance;
-
-                // Event ketika baris list menu kiri diklik
-                item.addEventListener("click", () => {
-                    listItems.forEach(el => el.classList.remove("active"));
-                    item.classList.add("active");
-                    mapEngine.flyTo([lat, lng], 13);
-                    markerInstance.openPopup();
-                });
+                markersDataset[spot.id] = markerInstance;
             });
         }
 
