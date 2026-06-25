@@ -113,10 +113,22 @@
     .geo-spot-item:hover, .geo-spot-item.active { background-color: #eff6ff; color: #1d4ed8; }
     .dark .geo-spot-item:hover, .dark .geo-spot-item.active { background-color: #1e3a8a; color: #eff6ff; }
     
-    #geo-osm-render-zone { width: 100%; flex: 1; min-height: 400px;}
+    #geo-osm-render-zone { 
+        width: 100% !important; 
+        height: 100% !important; 
+        min-height: 420px !important; 
+        position: relative !important; 
+        display: block !important;
+    }
 
     /* Fix invert warna map tile jika server menggunakan global dark reader, biarkan tile default */
     .leaflet-tile-container { filter: none !important; }
+    
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+    
 </style>
 
 <div class="w-full space-y-4">
@@ -248,58 +260,32 @@
     })();
 
     // INTEGRASI ENGINE INTERAKTIF LEAFLET MAPS
-    document.addEventListener("DOMContentLoaded", function() {
+    function bootstrapMapEngine() {
         const modal = document.getElementById("geo-map-modal-container");
         const openBtn = document.getElementById("geo-map-trigger");
         const closeBtn = document.getElementById("geo-modal-close-x");
         const locationInput = document.getElementById("location-input");
         const checkBtn = document.getElementById("weather-check-btn");
 
-        let mapEngine;
+        // Proteksi jika elemen belum siap di DOM
+        if (!modal || !openBtn) return;
+
+        let mapEngine = null;
         let markersDataset = {};
-        const sydneyDefaultCenter = [-33.95, 151.23]; // Fokus koordinat area pesisir Sydney
+        const sydneyDefaultCenter = [-33.95, 151.23];
 
-        function initOsmMap() {
-            if (mapEngine) return;
+        const fishingSpots = [
+            { id: "Botany Bay", lat: -33.9944, lng: 151.1926 },
+            { id: "Bronte Beach", lat: -33.9029, lng: 151.2684 },
+            { id: "Tamarama Beach", lat: -33.8994, lng: 151.2711 },
+            { id: "Maroubra Beach", lat: -33.9491, lng: 151.2569 },
+            { id: "Cape Solander", lat: -34.0189, lng: 151.2294 }
+        ];
 
-            // Bangun peta dasar
-            mapEngine = L.map("geo-osm-render-zone").setView(sydneyDefaultCenter, 11);
-            
-            // Anda bisa mengganti URL tile dengan mode gelap cartoDB jika openstreetmap biasa terlalu terang
-            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(mapEngine);
-
-            // DATASET PIN LOKASI DITULIS DISINI (Karena list sidebar HTML dihapus)
-            const fishingSpots = [
-                { id: "Botany Bay", lat: -33.9944, lng: 151.1926 },
-                { id: "Bronte Beach", lat: -33.9029, lng: 151.2684 },
-                { id: "Tamarama Beach", lat: -33.8994, lng: 151.2711 },
-                { id: "Maroubra Beach", lat: -33.9491, lng: 151.2569 },
-                { id: "Cape Solander", lat: -34.0189, lng: 151.2294 }
-            ];
-
-            // Render Marker ke map
-            fishingSpots.forEach(spot => {
-                const markerInstance = L.marker([spot.lat, spot.lng]).addTo(mapEngine)
-                    .bindPopup(`
-                        <div style="font-family:sans-serif;font-size:13px;color:#111;">
-                            <strong style="display:block;margin-bottom:5px;">${spot.id}</strong>
-                            <button type="button" class="geo-check-btn" style="padding:3px 10px !important;font-size:11px !important;border-radius:4px !important;cursor:pointer;" onclick="executeMapSelection('${spot.id}')">Select Spot</button>
-                        </div>
-                    `);
-                
-                markersDataset[spot.id] = markerInstance;
-            });
-        }
-
-        // Fungsi Global untuk memproses aksi klik "Select Spot" dari dalam popup Leaflet
         window.executeMapSelection = function(spotName) {
             if (locationInput) {
                 locationInput.value = spotName;
                 locationInput.dispatchEvent(new Event('change'));
-                
-                // Otomatis trigger tombol "Check" bawaan komponen agar user tidak perlu klik dua kali
                 if (checkBtn) {
                     checkBtn.click();
                 }
@@ -307,20 +293,47 @@
             closeMapModal();
         };
 
-        // Open Modal handler
         openBtn.addEventListener("click", () => {
             modal.style.display = "flex";
-            // Set timeout krusial agar engine leaflet menghitung ulang lebar canvas saat un-hide elemen (mencegah bug ubin peta abu-abu)
+            
             setTimeout(() => {
-                initOsmMap();
-                mapEngine.invalidateSize();
-            }, 120);
+                if (!mapEngine) {
+                    mapEngine = L.map("geo-osm-render-zone").setView(sydneyDefaultCenter, 11);
+                    
+                    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                        attribution: '&copy; OpenStreetMap contributors'
+                    }).addTo(mapEngine);
+
+                    fishingSpots.forEach(spot => {
+                        L.marker([spot.lat, spot.lng]).addTo(mapEngine)
+                            .bindPopup(`
+                                <div style="font-family:sans-serif;font-size:13px;color:#111;">
+                                    <strong style="display:block;margin-bottom:5px;">${spot.id}</strong>
+                                    <button type="button" class="geo-check-btn" style="padding:3px 10px !important;font-size:11px !important;border-radius:4px !important;cursor:pointer;" onclick="executeMapSelection('${spot.id}')">Select Spot</button>
+                                </div>
+                            `);
+                    });
+                } else {
+                    mapEngine.invalidateSize();
+                    mapEngine.setView(sydneyDefaultCenter, 11);
+                }
+            }, 250); 
         });
 
-        function closeMapModal() { modal.style.display = "none"; }
+        function closeMapModal() { 
+            modal.style.display = "none"; 
+        }
+        
         closeBtn.addEventListener("click", closeMapModal);
         window.addEventListener("click", (e) => { if (e.target === modal) closeMapModal(); });
-    });
+    }
+
+    // PENGAMAN MEMASTIKAN SCRIPT BERJALAN DI SEGALA KONDISI LIFECYCLE BROWSER
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootstrapMapEngine);
+    } else {
+        bootstrapMapEngine();
+    }
 </script>
 
 <script src="./js/weather-fetch.js"></script>
