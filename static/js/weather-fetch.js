@@ -238,50 +238,37 @@
     // ─── Height graph (wave_height, swell_wave_height, tide) ─────────────────
 
     function renderHeightGraph(data) {
-        const svgEl = el('height-telemetry-svg');
-        if (!svgEl) return;
-
-        const wave  = data.marine?.wave_height         || Array(24).fill(0);
-        const swell = data.marine?.swell_wave_height   || Array(24).fill(0);
-        const tide  = data.tide?.length ? data.tide     : Array(24).fill(0);
-
-        // Y scale: 0–4m
-        const minH = 0, maxH = 4.0;
-
-        const waveSeries  = buildSeries(wave,  minH, maxH);
-        const swellSeries = buildSeries(swell, minH, maxH);
-        const tideSeries  = buildSeries(tide,  minH, maxH);
-
-        // Update paths
-        // The SVG has one path per series; they're the first path with each color class
-        const wavePathEl  = svgEl.querySelector('path.color-wave');
-        const swellPathEl = svgEl.querySelector('path.color-swell');
-        const tidePathEl  = svgEl.querySelector('path.color-tide');
-
-        if (wavePathEl)  wavePathEl.setAttribute('d',  buildPath(waveSeries.pathPoints));
-        if (swellPathEl) swellPathEl.setAttribute('d', buildPath(swellSeries.pathPoints));
-        if (tidePathEl)  tidePathEl.setAttribute('d',  buildPath(tideSeries.pathPoints));
-
-        // Update dots
-        const allDots = svgEl.querySelectorAll('.graph-dot');
-        // Dots are ordered: wave dots (13), swell dots (13), tide dots (13)
-        const waveDots  = Array.from(allDots).filter(d => d.classList.contains('color-wave'));
-        const swellDots = Array.from(allDots).filter(d => d.classList.contains('color-swell'));
-        const tideDots  = Array.from(allDots).filter(d => d.classList.contains('color-tide'));
-
-        function applyDots(dots, series, attr) {
-            dots.forEach((dot, i) => {
-                if (i < series.dotPoints.length) {
-                    dot.setAttribute('cx', series.dotPoints[i].x.toFixed(1));
-                    dot.setAttribute('cy', series.dotPoints[i].y.toFixed(1));
-                    dot.setAttribute(attr, series.dotPoints[i].value?.toFixed(2) ?? '0');
-                }
-            });
+        const svgNS = 'http://www.w3.org/2000/svg';
+        
+        function renderSeries(pathId, groupId, values, minV, maxV, attr, cssClass) {
+            const pathEl = el(pathId);
+            const group  = el(groupId);
+            if (!pathEl || !group) return;
+            
+            // Build 24-point smooth path
+            const pts = values.map((v, i) => ({
+                x: hourToX(i), y: valueToY(v ?? 0, minV, maxV)
+            }));
+            pathEl.setAttribute('d', buildPath(pts));
+            
+            // Clear old dots, generate fresh
+            group.innerHTML = '';
+            for (let h = 0; h <= 24; h += 2) {
+                const v = h < 24 ? (values[h] ?? 0) : (values[23] ?? 0);
+                const circle = document.createElementNS(svgNS, 'circle');
+                circle.setAttribute('cx', hourToX(h).toFixed(1));
+                circle.setAttribute('cy', valueToY(v, minV, maxV).toFixed(1));
+                circle.setAttribute('r', '2');
+                circle.setAttribute(attr, v.toFixed(2));
+                circle.setAttribute('fill', 'currentColor');
+                circle.classList.add(cssClass, 'graph-dot');
+                group.appendChild(circle);
+            }
         }
 
-        applyDots(waveDots,  waveSeries,  'data-period');
-        applyDots(swellDots, swellSeries, 'data-period');
-        applyDots(tideDots,  tideSeries,  'data-value');
+        renderSeries('wave-height-path',  'wave-height-dots',  data.marine?.wave_height       || [], 0, 4, 'data-period', 'color-wave');
+        renderSeries('swell-height-path', 'swell-height-dots', data.marine?.swell_wave_height || [], 0, 4, 'data-period', 'color-swell');
+        renderSeries('tide-path',         'tide-dots',         data.tide || [],                    0, 4, 'data-value',  'color-tide');
     }
 
     // ─── Period graph (swell_wave_period) ─────────────────────────────────────

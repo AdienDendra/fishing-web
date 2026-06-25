@@ -73,50 +73,12 @@
             <g fill="currentColor" class="svg-text-small" text-anchor="middle">
                 <text x="60" y="392">00:00</text><text x="125" y="392">02:00</text><text x="190" y="392">04:00</text><text x="255" y="392">06:00</text><text x="320" y="392">08:00</text><text x="385" y="392">10:00</text><text x="450" y="392">12:00</text><text x="515" y="392">14:00</text><text x="580" y="392">16:00</text><text x="645" y="392">18:00</text><text x="710" y="392">20:00</text><text x="775" y="392">22:00</text><text x="840" y="392">24:00</text>
             </g>
-            <path d="M 60 216 L 190 192 L 320 176 L 450 160 L 580 184 L 710 232 L 840 248" fill="none" stroke="currentColor" class="color-wave" />
-            <circle cx="60" cy="216" data-period="8.5" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="125" cy="204" data-period="9.2" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="190" cy="192" data-period="10.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="255" cy="184" data-period="11.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="320" cy="176" data-period="12.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="385" cy="168" data-period="12.5" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="450" cy="160" data-period="13.5" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="515" cy="172" data-period="12.8" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="580" cy="184" data-period="12.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="645" cy="208" data-period="10.5" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="710" cy="232" data-period="9.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="775" cy="240" data-period="8.5" r="2" fill="currentColor" class="color-wave graph-dot" />
-            <circle cx="840" cy="248" data-period="8.0" r="2" fill="currentColor" class="color-wave graph-dot" />
-
-            <path d="M 60 240 L 190 232 L 320 216 L 450 208 L 580 224 L 710 256 L 840 272" fill="none" stroke="currentColor" class="color-swell"/>
-            <circle cx="60" cy="240" data-period="11.0" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="125" cy="236" data-period="11.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="190" cy="232" data-period="12.0" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="255" cy="224" data-period="12.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="320" cy="216" data-period="13.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="385" cy="212" data-period="14.0" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="450" cy="208" data-period="14.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="515" cy="216" data-period="14.0" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="580" cy="224" data-period="13.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="645" cy="240" data-period="12.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="710" cy="256" data-period="11.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="775" cy="264" data-period="11.0" r="2" fill="currentColor" class="color-swell graph-dot" />
-            <circle cx="840" cy="272" data-period="10.5" r="2" fill="currentColor" class="color-swell graph-dot" />
-
-            <path d="M 60 264 L 190 320 L 320 240 L 450 248 L 580 328 L 710 256 L 840 232" fill="none" stroke="currentColor" class="color-tide" />
-            <circle cx="60" cy="264" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="125" cy="292" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="190" cy="320" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="255" cy="280" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="320" cy="240" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="385" cy="244" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="450" cy="248" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="515" cy="288" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="580" cy="328" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="645" cy="292" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="710" cy="256" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="775" cy="244" r="2" fill="currentColor" class="color-tide graph-dot" />
-            <circle cx="840" cy="232" r="2" fill="currentColor" class="color-tide graph-dot" />
+            <path id="wave-height-path" fill="none" stroke="currentColor" class="color-wave" />
+            <path id="swell-height-path" fill="none" stroke="currentColor" class="color-swell" />
+            <path id="tide-path" fill="none" stroke="currentColor" class="color-tide" />
+            <g id="wave-height-dots"></g>
+            <g id="swell-height-dots"></g>
+            <g id="tide-dots"></g>
 
             <line id="time-line-1" x1="-10" y1="40" x2="-10" y2="360" stroke="#FFDD00" stroke-width="1.5" opacity="0.8" />
             <text id="time-text-1" x="-10" y="33" fill="#FFDD00" text-anchor="middle" class="svg-text-micro font-bold"></text>
