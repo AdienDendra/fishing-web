@@ -1,3 +1,4 @@
+
 <style>
     .geo-modal-overlay {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -28,7 +29,7 @@
 <div id="geo-map-modal-container" class="geo-modal-overlay">
     <div class="geo-modal-content font-sans">
         <div class="geo-modal-header">
-            <span class="geo-modal-title">🗺️ Select Fishing Spot</span>
+            <span class="geo-modal-title">Select Fishing Spot</span>
             <button type="button" id="geo-modal-close-x" class="geo-modal-close" aria-label="Close">&times;</button>
         </div>
         <div style="flex:1; min-height:0; overflow:hidden;">
@@ -37,18 +38,13 @@
     </div>
 </div>
 
+<script src="/data/spots.js"></script>
+
 <script>
+    
 (function () {
-    var SPOTS = [
-        { name: 'Botany Bay',     lat: -33.9929, lng: 151.2172 },
-        { name: 'Cronulla',       lat: -34.0574, lng: 151.1519 },
-        { name: 'Maroubra Beach', lat: -33.9491, lng: 151.2569 },
-        { name: 'Bondi Beach',    lat: -33.8908, lng: 151.2743 },
-        { name: 'Long Reef',      lat: -33.7397, lng: 151.3015 },
-        { name: 'Cape Solander',  lat: -34.0189, lng: 151.2294 },
-        { name: 'Dee Why',        lat: -33.7510, lng: 151.2946 },
-        { name: 'Sydney Harbour', lat: -33.8568, lng: 151.2153 },
-    ];
+
+    console.log(window.SPOTS);
 
     var modal     = document.getElementById('geo-map-modal-container');
     var openBtn   = document.getElementById('geo-map-trigger');
