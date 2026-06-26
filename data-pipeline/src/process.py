@@ -59,32 +59,43 @@ def dms_to_dd(dms):
 
 def main():
 
-    # csv_file = "../raw_source/beach.csv"
+    # csv_files = ["../raw_source/beach.csv", "../raw_source/bay.csv"]
 
     output_dir = "../../static/data"
     output_file = os.path.join(output_dir, "spots.js")
 
-    print("Membaca CSV...")
+    all_dfs = []
 
-    df = pd.read_csv(csv_file)
+    # Membaca semua file CSV yang ada di dalam list
+    for file in csv_files:
+        if os.path.exists(file):
+            print(f"Membaca {file}...")
+            df = pd.read_csv(file)
+            all_dfs.append(df)
+        else:
+            print(f"⚠️  File tidak ditemukan: {file}")
+
+    if not all_dfs:
+        print("❌ Error: Tidak ada data yang bisa diproses.")
+        return
+
+    # Gabungkan menjadi satu DataFrame besar
+    combined_df = pd.concat(all_dfs, ignore_index=True)
 
     # Konversi koordinat
-    df["lat"] = df["APPROX. GDA94 LAT"].apply(dms_to_dd)
-    df["lng"] = df["APPROX. GDA94 LONG"].apply(dms_to_dd)
+    combined_df["lat"] = combined_df["APPROX. GDA94 LAT"].apply(dms_to_dd)
+    combined_df["lng"] = combined_df["APPROX. GDA94 LONG"].apply(dms_to_dd)
 
-    # Buang data yang tidak punya koordinat
-    df = df.dropna(subset=["lat", "lng"])
+    # Buang data kosong atau gagal konversi
+    combined_df = combined_df.dropna(subset=["lat", "lng"])
 
+    # Tulis ke file output spots.js
     os.makedirs(output_dir, exist_ok=True)
-
     with open(output_file, "w", encoding="utf-8") as f:
-
         f.write("window.SPOTS = [\n")
 
-        for _, row in df.iterrows():
-
+        for _, row in combined_df.iterrows():
             name = str(row["PLACENAME"]).strip().replace("'", "\\'")
-
             f.write(
                 f"    {{ name: '{name}', lat: {row['lat']:.6f}, lng: {row['lng']:.6f} }},\n"
             )
@@ -92,7 +103,7 @@ def main():
         f.write("];\n")
 
     print(f"✓ Berhasil membuat {output_file}")
-    print(f"✓ Total lokasi: {len(df)}")
+    print(f"✓ Total keseluruhan lokasi: {len(combined_df)}")
 
 
 if __name__ == "__main__":

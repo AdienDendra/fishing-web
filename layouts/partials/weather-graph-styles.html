@@ -1,0 +1,100 @@
+{{/*
+    weather-graph-styles.html
+    CSS terpusat untuk semua graph di weather page.
+    Di-include SEKALI di weather-page.html sebelum blueprint calls.
+    Jangan include di tempat lain — akan duplicate style.
+*/}}
+<style>
+    /* ── Graph container ─────────────────────────────────────────── */
+    .telemetry-container { background-color: transparent !important; }
+
+    /* ── Grid lines ──────────────────────────────────────────────── */
+    .chart-grid-line { stroke: #e5e7eb; }
+    .dark .chart-grid-line { stroke: #ffffff13; }
+
+    /* ── Text sizes ──────────────────────────────────────────────── */
+    .svg-text-micro  { font-size: 10px !important; }
+    .svg-text-small  { font-size: 11px !important; }
+    .font-size-micro { font-size: 12px !important; line-height: 12px !important; }
+
+    /* ── Legend layout ───────────────────────────────────────────── */
+    .legend-gap {
+        display: flex !important; flex-wrap: wrap !important;
+        align-items: center !important; gap: 12px 28px !important;
+    }
+
+    /* ── Series colours ──────────────────────────────────────────── */
+    /* Wave — purple */
+    .color-wave       { color: #9522ac; }
+    .dark .color-wave { color: #d96fee; }
+
+    /* Swell — blue */
+    .color-swell       { color: #1871c5; }
+    .dark .color-swell { color: #1d8cf3; }
+
+    /* Tide — grey */
+    .color-tide       { color: #7c7c7c; }
+    .dark .color-tide { color: #9ca3af; }
+
+    /* Wind — teal */
+    .color-wind       { color: #0d9488; }
+    .dark .color-wind { color: #2dd4bf; }
+
+    /* Gust — orange */
+    .color-gust       { color: #ea580c; }
+    .dark .color-gust { color: #fb923c; }
+
+    /* Dangerous threshold marker */
+    .color-dangerous { color: #ef4444; }
+
+    /* ── Dot interactivity ───────────────────────────────────────── */
+    .graph-dot {
+        transition: r 0.12s ease;
+        cursor: pointer;
+    }
+    .graph-dot:hover { r: 4.5px; }
+
+    /* ── Tooltip ─────────────────────────────────────────────────── */
+    .custom-graph-tooltip {
+        position: absolute;
+        display: none;
+        pointer-events: none;
+        background-color: color-mix(in srgb, var(--entry, #ffffff) 92%, transparent) !important;
+        border: 1.5px solid var(--border, #e5e7eb) !important;
+        border-radius: 6px !important;
+        padding: 6px 10px !important;
+        font-family: inherit !important;
+        font-size: 11px !important;
+        z-index: 50 !important;
+        color: var(--primary, #1f2937) !important;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+        width: max-content !important;
+    }
+    .tt-title {
+        font-weight: bold;
+        font-size: 12px !important;
+        text-transform: uppercase;
+        margin-bottom: 2px !important;
+        line-height: 1.2 !important;
+    }
+    .tt-row {
+        color: var(--secondary, #4b5563) !important;
+        font-weight: 500;
+        margin-top: 1px !important;
+        line-height: 1.2 !important;
+    }
+    .tt-num {
+        font-weight: bold;
+        color: var(--primary, #111827) !important;
+    }
+
+    /* ── Mobile: fixed SVG width to enable horizontal scroll ─────── */
+    @media (max-width: 767px) {
+        .responsive-svg {
+            width: 900px !important;
+            min-width: 900px !important;
+            max-width: none !important;
+            height: auto !important;
+        }
+    }
+</style>

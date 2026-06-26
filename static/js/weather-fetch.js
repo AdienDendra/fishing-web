@@ -3,13 +3,10 @@
  * Handles API fetch, DOM updates, and SVG graph rendering
  * for fishing.adiendendra.com
  *
- * SVG IDs (from weather-graph-blueprint.html):
- *   Height graph: telemetry-svg-height
- *     paths : wave-height-path, swell-height-path, tide-path
- *     groups: wave-height-dots, swell-height-dots, tide-dots
- *   Period graph: telemetry-svg-period
- *     paths : wave-period-path, swell-period-path
- *     groups: wave-period-dots, swell-period-dots
+ * SVG ID convention (matches weather-graph-blueprint.html):
+ *   Path:  {series}-{graphId}-path   e.g. wave-height-path, swell-period-path
+ *   Dots:  {series}-{graphId}-dots   e.g. wave-height-dots, tide-height-dots
+ *   SVG:   telemetry-svg-{graphId}   e.g. telemetry-svg-height
  */
 
 (function () {
@@ -69,6 +66,7 @@
     }
 
     function buildPath(values, min, max) {
+        if (!values || values.length === 0) return '';
         return values.map((v, i) => {
             const x = toX(i).toFixed(1);
             const y = toY(v, min, max).toFixed(1);
@@ -76,17 +74,27 @@
         }).join(' ');
     }
 
+    // ─── Core render function ─────────────────────────────────────────────────
+
     /**
-     * renderSeries — updates one data series inside an SVG:
-     *   - Sets <path id="{pathId}"> with smooth 24-point line
-     *   - Clears <g id="{groupId}"> and generates fresh dots every 2h (13 dots)
+     * renderSeries — renders one data series into an SVG graph.
+     *
+     * @param {string} seriesName  — e.g. "wave", "swell", "tide"
+     * @param {string} graphId     — e.g. "height", "period"
+     * @param {number[]} values    — 24 hourly data points
+     * @param {number} min         — y scale minimum
+     * @param {number} max         — y scale maximum
+     * @param {string} dataAttr    — attribute name for dot value, e.g. "data-value"
+     *
+     * Path ID:  {seriesName}-{graphId}-path
+     * Group ID: {seriesName}-{graphId}-dots
      */
-    function renderSeries(pathId, groupId, values, min, max, dotAttr, cssClass) {
-        const pathEl = el(pathId);
-        const group  = el(groupId);
+    function renderSeries(seriesName, graphId, values, min, max, dataAttr) {
+        const pathEl = el(`${seriesName}-${graphId}-path`);
+        const group  = el(`${seriesName}-${graphId}-dots`);
         if (!pathEl || !group) return;
 
-        // Update path (24 hourly points)
+        // Update smooth 24-point path
         pathEl.setAttribute('d', buildPath(values, min, max));
 
         // Regenerate dots every 2h → 13 points: 0,2,4,...,24
@@ -98,59 +106,13 @@
             circle.setAttribute('cy', toY(v, min, max).toFixed(1));
             circle.setAttribute('r',  '2');
             circle.setAttribute('fill', 'currentColor');
-            circle.setAttribute(dotAttr, v.toFixed(2));
-            circle.classList.add(cssClass, 'graph-dot');
+            circle.setAttribute(dataAttr, v.toFixed(2));
+            circle.classList.add(`color-${seriesName}`, 'graph-dot');
             group.appendChild(circle);
         }
     }
 
-    // ─── Height graph ─────────────────────────────────────────────────────────
-
-    function renderHeightGraph(data) {
-        const wave  = data.marine?.wave_height       || Array(24).fill(0);
-        const swell = data.marine?.swell_wave_height || Array(24).fill(0);
-        const tide  = (Array.isArray(data.tide) && data.tide.length) ? data.tide : Array(24).fill(0);
-
-        // Y scale 0–4m
-        renderSeries('wave-height-path',  'wave-height-dots',  wave,  0, 4, 'data-value', 'color-wave');
-        renderSeries('swell-height-path', 'swell-height-dots', swell, 0, 4, 'data-value', 'color-swell');
-        renderSeries('tide-path',         'tide-dots',         tide,  0, 4, 'data-value', 'color-tide');
-
-        // Attach tooltips after dots are regenerated
-        setupTooltips('telemetry-svg-height', function(dot) {
-            const cx     = parseFloat(dot.getAttribute('cx'));
-            const timeStr = formatHour(cx);
-            const height  = parseFloat(dot.getAttribute('data-value') || 0).toFixed(2);
-            let label = 'Tide', cls = 'color-tide';
-            if (dot.classList.contains('color-wave'))  { label = 'Wave';  cls = 'color-wave';  }
-            if (dot.classList.contains('color-swell')) { label = 'Swell'; cls = 'color-swell'; }
-            return `<div class="tt-title ${cls}">${label} (${timeStr})</div>
-                    <div class="tt-row">height: <span class="tt-num">${height}m</span></div>`;
-        });
-    }
-
-    // ─── Period graph ─────────────────────────────────────────────────────────
-
-    function renderPeriodGraph(data) {
-        const wavePeriod  = data.marine?.wave_period       || Array(24).fill(0);
-        const swellPeriod = data.marine?.swell_wave_period || Array(24).fill(0);
-
-        // Y scale 0–16s (matches blueprint y_max=16)
-        renderSeries('wave-period-path',  'wave-period-dots',  wavePeriod,  0, 16, 'data-value', 'color-wave');
-        renderSeries('swell-period-path', 'swell-period-dots', swellPeriod, 0, 16, 'data-value', 'color-swell');
-
-        setupTooltips('telemetry-svg-period', function(dot) {
-            const cx      = parseFloat(dot.getAttribute('cx'));
-            const timeStr = formatHour(cx);
-            const period  = parseFloat(dot.getAttribute('data-value') || 0).toFixed(1);
-            let label = 'Swell', cls = 'color-swell';
-            if (dot.classList.contains('color-wave')) { label = 'Wave'; cls = 'color-wave'; }
-            return `<div class="tt-title ${cls}">${label} (${timeStr})</div>
-                    <div class="tt-row">period: <span class="tt-num">${period}s</span></div>`;
-        });
-    }
-
-    // ─── Tooltip (shared, reusable per SVG) ──────────────────────────────────
+    // ─── Tooltip ──────────────────────────────────────────────────────────────
 
     function formatHour(cx) {
         const hour = Math.round((parseFloat(cx) - SVG_X_START) / (SVG_X_END - SVG_X_START) * 24);
@@ -158,10 +120,11 @@
     }
 
     /**
-     * setupTooltips — attaches hover tooltip to all .graph-dot inside svgId.
-     * Called after each renderSeries to re-attach on fresh dots.
-     * @param {string} svgId      - id of the <svg> element
-     * @param {Function} buildHTML - fn(dot) → HTML string for tooltip content
+     * setupTooltips — attaches hover tooltip to all .graph-dot inside an SVG.
+     * Called after each render to re-attach on freshly generated dots.
+     *
+     * @param {string} svgId      — id of <svg> element
+     * @param {Function} buildHTML — fn(dot) → HTML string for tooltip body
      */
     function setupTooltips(svgId, buildHTML) {
         const svgEl = el(svgId);
@@ -170,7 +133,7 @@
         const container = svgEl.closest('.telemetry-container');
         if (!container) return;
 
-        // Remove any existing tooltip for this container
+        // Remove old tooltip to avoid stacking
         container.querySelectorAll('.custom-graph-tooltip').forEach(t => t.remove());
 
         const tooltip = document.createElement('div');
@@ -178,26 +141,78 @@
         container.appendChild(tooltip);
 
         svgEl.querySelectorAll('.graph-dot').forEach(dot => {
-            dot.addEventListener('mouseenter', function () {
+            dot.addEventListener('mouseenter', () => {
                 tooltip.innerHTML = buildHTML(dot);
                 tooltip.style.display = 'block';
             });
-            dot.addEventListener('mousemove', function (e) {
+            dot.addEventListener('mousemove', e => {
                 const rect = container.getBoundingClientRect();
                 tooltip.style.left = (e.clientX - rect.left + container.scrollLeft + 12) + 'px';
                 tooltip.style.top  = (e.clientY - rect.top  + container.scrollTop  - 12) + 'px';
             });
-            dot.addEventListener('mouseleave', function () {
+            dot.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
             });
+        });
+    }
+
+    // ─── Height graph (wave, swell, tide) ─────────────────────────────────────
+
+    function renderHeightGraph(data) {
+        const wave  = data.marine?.wave_height       || Array(24).fill(0);
+        const swell = data.marine?.swell_wave_height || Array(24).fill(0);
+        const tide  = (Array.isArray(data.tide) && data.tide.length) ? data.tide : Array(24).fill(0);
+
+        // Y scale 0–4m
+        renderSeries('wave',  'height', wave,  0, 4, 'data-value');
+        renderSeries('swell', 'height', swell, 0, 4, 'data-value');
+        renderSeries('tide',  'height', tide,  0, 4, 'data-value');
+
+        setupTooltips('telemetry-svg-height', dot => {
+            const cx      = parseFloat(dot.getAttribute('cx'));
+            const timeStr = formatHour(cx);
+            const height  = parseFloat(dot.getAttribute('data-value') || 0).toFixed(2);
+
+            // Derive series name from class list: color-wave → wave
+            let seriesName = 'tide';
+            if (dot.classList.contains('color-wave'))  seriesName = 'wave';
+            if (dot.classList.contains('color-swell')) seriesName = 'swell';
+
+            const labels = { wave: 'Wave', swell: 'Swell', tide: 'Tide' };
+            return `<div class="tt-title color-${seriesName}">${labels[seriesName]} (${timeStr})</div>
+                    <div class="tt-row">height: <span class="tt-num">${height}m</span></div>`;
+        });
+    }
+
+    // ─── Period graph (wave, swell) ───────────────────────────────────────────
+
+    function renderPeriodGraph(data) {
+        const wavePeriod  = data.marine?.wave_period       || Array(24).fill(0);
+        const swellPeriod = data.marine?.swell_wave_period || Array(24).fill(0);
+
+        // Y scale 0–16s (matches blueprint y_max=16)
+        renderSeries('wave',  'period', wavePeriod,  0, 16, 'data-value');
+        renderSeries('swell', 'period', swellPeriod, 0, 16, 'data-value');
+
+        setupTooltips('telemetry-svg-period', dot => {
+            const cx      = parseFloat(dot.getAttribute('cx'));
+            const timeStr = formatHour(cx);
+            const period  = parseFloat(dot.getAttribute('data-value') || 0).toFixed(1);
+
+            let seriesName = 'swell';
+            if (dot.classList.contains('color-wave')) seriesName = 'wave';
+
+            const labels = { wave: 'Wave', swell: 'Swell' };
+            return `<div class="tt-title color-${seriesName}">${labels[seriesName]} (${timeStr})</div>
+                    <div class="tt-row">period: <span class="tt-num">${period}s</span></div>`;
         });
     }
 
     // ─── Safety evaluation ────────────────────────────────────────────────────
 
     function evaluateSafety(data) {
-        const safe   = (arr) => (arr || []).filter(v => v != null);
-        const maxVal = (arr) => safe(arr).length ? Math.max(...safe(arr)) : 0;
+        const safe   = arr => (arr || []).filter(v => v != null);
+        const maxVal = arr => safe(arr).length ? Math.max(...safe(arr)) : 0;
 
         const maxWave   = maxVal(data.marine?.wave_height);
         const maxSwell  = maxVal(data.marine?.swell_wave_height);
@@ -325,7 +340,6 @@
             renderPeriodGraph(data);
             updateAnalysisPanel(data);
 
-            // Auto-retry if AI analysis not yet ready
             if (data.status === 'partial') {
                 setTimeout(fetchWeather, 8000);
             }

@@ -3,7 +3,11 @@
 {{ partial "weather-map-modal.html" . }}
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
-<div id="graph-loading-overlay" style="display:none;" class="flex items-center justify-center py-8 text-sm text-neutral-400 dark:text-neutral-500 font-mono">
+{{/* Graph CSS — include ONCE here, not inside blueprint */}}
+{{ partial "weather-graph-styles.html" . }}
+
+<div id="graph-loading-overlay" style="display:none;"
+     class="flex items-center justify-center py-8 text-sm text-neutral-400 dark:text-neutral-500 font-mono">
     <svg class="animate-spin h-5 w-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 14.627 0 20 12h-4a4 4 0 00-4-4V4A8 8 0 014 12z"></path>
@@ -12,26 +16,54 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-start">
+
+    {{/* ── Height graph ── */}}
     <div class="w-full bg-transparent">
         {{ partial "weather-graph-blueprint.html" (dict
-            "id"         "height"
-            "title"      "WAVE SWELL AND TIDE HEIGHT GRAPH"
-            "y_unit"     "Height(m)"
-            "y_max"      4.0
-            "danger_val" 2.0
-            "labels"     (slice "4.00" "3.50" "3.00" "2.50" "2.00" "1.50" "1.00" "0.50" "0.00")
+            "id"           "height"
+            "title"        "WAVE SWELL AND TIDE HEIGHT GRAPH"
+            "y_unit"       "Height(m)"
+            "y_max"        4.0
+            "danger_val"   2.0
+            "labels"       (slice "4.00" "3.50" "3.00" "2.50" "2.00" "1.50" "1.00" "0.50" "0.00")
+            "series"       (slice "wave" "swell" "tide")
+            "legend"       (slice "Wave Height" "Swell Height" "Tide Level")
+            "danger_label" "DANGER (≥2.00m)"
         ) }}
     </div>
+
+    {{/* ── Period graph ── */}}
     <div class="w-full bg-transparent">
         {{ partial "weather-graph-blueprint.html" (dict
-            "id"         "period"
-            "title"      "WAVE AND SWELL PERIOD GRAPH"
-            "y_unit"     "Period(s)"
-            "y_max"      16.0
-            "danger_val" 12.0
-            "labels"     (slice "16.0" "14.0" "12.0" "10.0" "8.0" "6.0" "4.0" "2.0" "0.0")
+            "id"           "period"
+            "title"        "WAVE AND SWELL PERIOD GRAPH"
+            "y_unit"       "Period(s)"
+            "y_max"        16.0
+            "danger_val"   12.0
+            "labels"       (slice "16.0" "14.0" "12.0" "10.0" "8.0" "6.0" "4.0" "2.0" "0.0")
+            "series"       (slice "wave" "swell")
+            "legend"       (slice "Wave Period" "Swell Period")
+            "danger_label" "DANGER (≥12s)"
         ) }}
     </div>
+
+    {{/*
+        ── Future graphs — uncomment dan tambah sesuai kebutuhan ──
+
+        Wind speed graph:
+        {{ partial "weather-graph-blueprint.html" (dict
+            "id"           "wind"
+            "title"        "WIND SPEED GRAPH"
+            "y_unit"       "Speed(km/h)"
+            "y_max"        80.0
+            "danger_val"   50.0
+            "labels"       (slice "80" "70" "60" "50" "40" "30" "20" "10" "0")
+            "series"       (slice "wind" "gust")
+            "legend"       (slice "Wind Speed" "Wind Gust")
+            "danger_label" "DANGER (≥50km/h)"
+        ) }}
+    */}}
+
 </div>
 
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
@@ -49,7 +81,7 @@
 
 <script>
 (function() {
-    // Current time indicator — loops over all blueprint SVGs
+    // Current time indicator — generic, works for any blueprint SVG
     function updateTimeline() {
         const now = new Date();
         const currentX = 60 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 780;
@@ -62,7 +94,9 @@
             if (currentX >= 60 && currentX <= 840) {
                 line.setAttribute('x1', currentX); line.setAttribute('x2', currentX);
                 text.setAttribute('x', currentX);
-                text.textContent = 'CURRENT TIME (' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ')';
+                text.textContent = 'CURRENT TIME (' +
+                    String(now.getHours()).padStart(2,'0') + ':' +
+                    String(now.getMinutes()).padStart(2,'0') + ')';
                 line.style.display = 'block'; text.style.display = 'block';
             } else {
                 line.style.display = 'none'; text.style.display = 'none';
