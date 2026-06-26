@@ -65,13 +65,33 @@
         return SVG_X_START + (hour / 24) * (SVG_X_END - SVG_X_START);
     }
 
+    // GANTI fungsi buildPath lama dengan ini:
     function buildPath(values, min, max) {
         if (!values || values.length === 0) return '';
-        return values.map((v, i) => {
-            const x = toX(i).toFixed(1);
-            const y = toY(v, min, max).toFixed(1);
-            return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-        }).join(' ');
+
+        const pts = values.map((v, i) => ({
+            x: parseFloat(toX(i).toFixed(1)),
+            y: parseFloat(toY(v, min, max).toFixed(1))
+        }));
+
+        // Cubic bezier smooth curve — tension 0.3
+        const tension = 0.3;
+        let d = `M ${pts[0].x} ${pts[0].y}`;
+
+        for (let i = 0; i < pts.length - 1; i++) {
+            const p0 = pts[i - 1] || pts[i];
+            const p1 = pts[i];
+            const p2 = pts[i + 1];
+            const p3 = pts[i + 2] || pts[i + 1];
+
+            const cp1x = p1.x + (p2.x - p0.x) * tension;
+            const cp1y = p1.y + (p2.y - p0.y) * tension;
+            const cp2x = p2.x - (p3.x - p1.x) * tension;
+            const cp2y = p2.y - (p3.y - p1.y) * tension;
+
+            d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x} ${p2.y}`;
+        }
+        return d;
     }
 
     // ─── Core render function ─────────────────────────────────────────────────
