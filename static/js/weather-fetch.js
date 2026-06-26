@@ -21,6 +21,7 @@
         'sydney harbour':     { lat: -33.8568, lon: 151.2153 },
     };
 
+    
     // Default location
     const DEFAULT_LOCATION = 'botany bay';
 
@@ -441,6 +442,28 @@
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
+    }
+
+    // ─── Tool tip  ─────────────────────────────────────────────────────────────────
+
+    function setupTooltips() {
+        const tooltip = document.getElementById('graph-tooltip');
+        
+        document.addEventListener('mouseover', (e) => {
+            if (e.target.classList.contains('graph-dot')) {
+                const val = e.target.getAttribute('data-value') || e.target.getAttribute('data-period');
+                tooltip.textContent = `Value: ${val}`;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 10) + 'px';
+                tooltip.style.top = (e.pageY + 10) + 'px';
+            }
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            if (e.target.classList.contains('graph-dot')) {
+                tooltip.style.display = 'none';
+            }
+        });
     }
 
 })();
