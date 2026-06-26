@@ -122,7 +122,7 @@
 
         // Regenerate dots every 2h → 13 points: 0,2,4,...,24
         group.innerHTML = '';
-        for (let h = 0; h <= 24; h += 2) {
+        for (let h = 0; h < 24; h += 2) {
             const v = h < 24 ? (values[h] ?? 0) : (values[23] ?? 0);
             const circle = document.createElementNS(SVG_NS, 'circle');
             circle.setAttribute('cx', toX(h).toFixed(1));
