@@ -158,8 +158,8 @@
             });
             dot.addEventListener('mousemove', e => {
                 const rect = container.getBoundingClientRect();
-                tooltip.style.left = (e.clientX - rect.left + container.scrollLeft + 12) + 'px';
-                tooltip.style.top  = (e.clientY - rect.top  + container.scrollTop  - 12) + 'px';
+                tooltip.style.left = (e.clientX - rect.left + container.scrollLeft - tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top  = (e.clientY - rect.top  + container.scrollTop  - 55) + 'px';
             });
             dot.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
