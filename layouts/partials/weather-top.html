@@ -1,3 +1,9 @@
+<!-- Hapus link CSS Leaflet yang lama, ganti dengan ini di ATAS semua -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
 <style>
     .status-indicator-dot { background-color: #10b981; }
     .status-text-green { color: #059669; }
@@ -214,92 +220,121 @@
 <div id="geo-map-modal-container" class="geo-modal-overlay">
     <div class="geo-modal-content font-sans">
         <div class="geo-modal-header">
-            <span class="geo-modal-title text-sm sm:text-base">Select Fishing Spot</span>
+            <span class="geo-modal-title text-sm sm:text-base">🗺️ Select Fishing Spot</span>
             <button type="button" id="geo-modal-close-x" class="geo-modal-close">&times;</button>
         </div>
-        <div style="flex:1; min-height:0; overflow:hidden; position:relative;">
-            <iframe 
-                id="geo-osm-iframe"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=150.9%2C-34.2%2C151.5%2C-33.7&layer=mapnik&marker=-33.9929%2C151.2172"
-                style="width:100%; height:100%; min-height:400px; border:none;"
-                loading="lazy">
-            </iframe>
-            <!-- Hardcoded spot buttons overlay -->
-            <div style="position:absolute; top:10px; left:10px; z-index:999; display:flex; flex-direction:column; gap:6px;">
-                <button onclick="selectSpot('Botany Bay', -33.9929, 151.2172)" 
-                    style="background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-                    📍 Botany Bay
-                </button>
-                <button onclick="selectSpot('Cronulla', -34.0574, 151.1519)"
-                    style="background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-                    📍 Cronulla
-                </button>
-                <button onclick="selectSpot('Maroubra Beach', -33.9491, 151.2569)"
-                    style="background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-                    📍 Maroubra Beach
-                </button>
-                <button onclick="selectSpot('Bondi Beach', -33.8908, 151.2743)"
-                    style="background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-                    📍 Bondi Beach
-                </button>
-                <button onclick="selectSpot('Long Reef', -33.7397, 151.3015)"
-                    style="background:#2563eb;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.3);">
-                    📍 Long Reef
-                </button>
-            </div>
+        <div style="flex:1; min-height:0; overflow:hidden;">
+            <div id="geo-osm-render-zone" style="width:100%; height:100%; min-height:420px;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    (function() {
-        // Date select population
-        function generateForecastDays() {
-            const dateSelect = document.getElementById('date-select');
-            if (!dateSelect) return;
-            dateSelect.innerHTML = '';
-            const daysOfWeek = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-            for (let i = 0; i < 7; i++) {
-                const d = new Date();
-                d.setDate(d.getDate() + i);
-                const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-                let label = `${daysOfWeek[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
-                if (i === 0) label = `Today (${label})`;
-                if (i === 1) label = `Tomorrow (${label})`;
-                const opt = document.createElement('option');
-                opt.value = val; opt.textContent = label;
-                dateSelect.appendChild(opt);
-            }
+(function() {
+    // Date select
+    function generateForecastDays() {
+        const dateSelect = document.getElementById('date-select');
+        if (!dateSelect) return;
+        dateSelect.innerHTML = '';
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            let label = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+            if (i === 0) label = `Today (${label})`;
+            if (i === 1) label = `Tomorrow (${label})`;
+            const opt = document.createElement('option');
+            opt.value = val; opt.textContent = label;
+            dateSelect.appendChild(opt);
         }
-        generateForecastDays();
+    }
+    generateForecastDays();
 
-        // Map modal
-        const modal   = document.getElementById('geo-map-modal-container');
-        const openBtn = document.getElementById('geo-map-trigger');
-        const closeBtn = document.getElementById('geo-modal-close-x');
+    // Fishing spots — hardcoded for now, will load from S3 later
+    const SPOTS = [
+        { name: 'Botany Bay',      lat: -33.9929, lng: 151.2172 },
+        { name: 'Cronulla',        lat: -34.0574, lng: 151.1519 },
+        { name: 'Maroubra Beach',  lat: -33.9491, lng: 151.2569 },
+        { name: 'Bondi Beach',     lat: -33.8908, lng: 151.2743 },
+        { name: 'Long Reef',       lat: -33.7397, lng: 151.3015 },
+        { name: 'Cape Solander',   lat: -34.0189, lng: 151.2294 },
+        { name: 'Dee Why',         lat: -33.7510, lng: 151.2946 },
+        { name: 'Sydney Harbour',  lat: -33.8568, lng: 151.2153 },
+    ];
 
-        if (openBtn) openBtn.addEventListener('click', () => { modal.style.display = 'flex'; });
-        if (closeBtn) closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
-        window.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
-    })();
+    const modal    = document.getElementById('geo-map-modal-container');
+    const openBtn  = document.getElementById('geo-map-trigger');
+    const closeBtn = document.getElementById('geo-modal-close-x');
+    let mapEngine  = null;
 
-    // Global — dipanggil dari button onclick di dalam modal
-    function selectSpot(name, lat, lon) {
+    function closeModal() { modal.style.display = 'none'; }
+
+    function initLeafletMap() {
+        if (typeof L === 'undefined' || typeof L.map !== 'function') {
+            console.error('Leaflet not loaded');
+            return;
+        }
+        if (mapEngine) {
+            setTimeout(() => { mapEngine.invalidateSize(); }, 100);
+            return;
+        }
+
+        mapEngine = L.map('geo-osm-render-zone', { zoomControl: true })
+                     .setView([-33.95, 151.23], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(mapEngine);
+
+        // Red pin icon
+        const redIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize:   [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor:[1, -34],
+            shadowSize: [41, 41]
+        });
+
+        SPOTS.forEach(spot => {
+            L.marker([spot.lat, spot.lng], { icon: redIcon })
+             .addTo(mapEngine)
+             .bindPopup(`
+                <div style="font-family:sans-serif; min-width:130px;">
+                    <strong style="display:block; margin-bottom:6px; font-size:13px;">${spot.name}</strong>
+                    <button onclick="window.selectFishingSpot('${spot.name}', ${spot.lat}, ${spot.lng})"
+                        style="width:100%; background:#2563eb; color:#fff; border:none; 
+                               padding:5px 0; border-radius:4px; cursor:pointer; font-size:12px; font-weight:600;">
+                        ✓ Select This Spot
+                    </button>
+                </div>
+             `);
+        });
+
+        setTimeout(() => mapEngine.invalidateSize(), 150);
+    }
+
+    // Global — called from popup button
+    window.selectFishingSpot = function(name, lat, lng) {
         const input = document.getElementById('location-input');
         if (input) input.value = name;
-        
-        // Update iframe marker ke lokasi yang dipilih
-        const iframe = document.getElementById('geo-osm-iframe');
-        if (iframe) {
-            iframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.3}%2C${lat-0.2}%2C${lon+0.3}%2C${lat+0.2}&layer=mapnik&marker=${lat}%2C${lon}`;
-        }
-
-        // Tutup modal dan trigger fetch
-        document.getElementById('geo-map-modal-container').style.display = 'none';
+        closeModal();
         const checkBtn = document.getElementById('weather-check-btn');
         if (checkBtn) checkBtn.click();
+    };
+
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            setTimeout(initLeafletMap, 300);
+        });
     }
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+})();
 </script>
 
 <script src="/js/weather-fetch.js"></script>
