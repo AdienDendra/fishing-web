@@ -1,5 +1,6 @@
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 {{ partial "weather-top.html" . }}
+{{ partial "weather-map-modal.html" . }}
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
 <div id="graph-loading-overlay" style="display:none;" class="flex items-center justify-center py-8 text-sm text-neutral-400 dark:text-neutral-500 font-mono">
@@ -11,32 +12,30 @@
 </div>
 
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-start">
-    
     <div class="w-full bg-transparent">
-        {{ partial "weather-graph-blueprint.html" (dict 
-            "id" "height" 
-            "title" "WAVE SWELL AND TIDE HEIGHT GRAPH" 
-            "y_unit" "Height(m)" 
-            "y_max" 4.0 
-            "danger_val" 2.0 
-            "labels" (slice "4.00" "3.50" "3.00" "2.50" "2.00" "1.50" "1.00" "0.50" "0.00") 
+        {{ partial "weather-graph-blueprint.html" (dict
+            "id"         "height"
+            "title"      "WAVE SWELL AND TIDE HEIGHT GRAPH"
+            "y_unit"     "Height(m)"
+            "y_max"      4.0
+            "danger_val" 2.0
+            "labels"     (slice "4.00" "3.50" "3.00" "2.50" "2.00" "1.50" "1.00" "0.50" "0.00")
         ) }}
     </div>
-    
     <div class="w-full bg-transparent">
-        {{ partial "weather-graph-blueprint.html" (dict 
-            "id" "period" 
-            "title" "WAVE AND SWELL PERIOD GRAPH" 
-            "y_unit" "Period(s)" 
-            "y_max" 16.0 
-            "danger_val" 12.0 
-            "labels" (slice "16.0" "14.0" "12.0" "10.0" "8.0" "6.0" "4.0" "2.0" "0.0") 
+        {{ partial "weather-graph-blueprint.html" (dict
+            "id"         "period"
+            "title"      "WAVE AND SWELL PERIOD GRAPH"
+            "y_unit"     "Period(s)"
+            "y_max"      16.0
+            "danger_val" 12.0
+            "labels"     (slice "16.0" "14.0" "12.0" "10.0" "8.0" "6.0" "4.0" "2.0" "0.0")
         ) }}
     </div>
-
 </div>
 
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
+
 <div class="w-full space-y-2 font-sans">
     <h3 class="text-sm font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
         🤖 AI FISHING ANALYSIS
@@ -45,63 +44,32 @@
         Press Check to load analysis...
     </div>
 </div>
+
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
 <script>
-    (function() {
-        function updateTimeline() {
-            const now = new Date(); 
-            const hours = now.getHours(); 
-            const minutes = now.getMinutes();
-            // Rumus koordinat X sesuai struktur grid SVG Anda
-            const currentX = 60 + (hours * 32.5) + (minutes * (32.5 / 60));
-            
-            // Looping ke semua komponen grafik yang dipanggil via blueprint
-            document.querySelectorAll('svg[id^="telemetry-svg-"]').forEach(svg => {
-                const idSuffix = svg.id.replace('telemetry-svg-', '');
-                const line = document.getElementById(`time-line-${idSuffix}`);
-                const text = document.getElementById(`time-text-${idSuffix}`);
-                
-                if (line && text) {
-                    if (currentX >= 60 && currentX <= 840) {
-                        line.setAttribute('x1', currentX); 
-                        line.setAttribute('x2', currentX); 
-                        text.setAttribute('x', currentX);
-                        text.textContent = `CURRENT TIME (${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')})`;
-                        line.style.display = 'block'; 
-                        text.style.display = 'block';
-                    } else { 
-                        line.style.display = 'none'; 
-                        text.style.display = 'none'; 
-                    }
-                }
-            });
-        }
-        updateTimeline(); 
-        setInterval(updateTimeline, 30000);
+(function() {
+    // Current time indicator — loops over all blueprint SVGs
+    function updateTimeline() {
+        const now = new Date();
+        const currentX = 60 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 780;
 
-        const svg = document.getElementById('height-telemetry-svg'); const container = svg.closest('.telemetry-container');
-        const tooltip = document.createElement('div'); tooltip.className = 'custom-graph-tooltip'; container.appendChild(tooltip);
-
-        svg.querySelectorAll('.graph-dot').forEach(dot => {
-            dot.addEventListener('mouseenter', showTooltip); dot.addEventListener('mousemove', moveTooltip);
-            dot.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+        document.querySelectorAll('svg[id^="telemetry-svg-"]').forEach(svg => {
+            const idSuffix = svg.id.replace('telemetry-svg-', '');
+            const line = document.getElementById('time-line-' + idSuffix);
+            const text = document.getElementById('time-text-' + idSuffix);
+            if (!line || !text) return;
+            if (currentX >= 60 && currentX <= 840) {
+                line.setAttribute('x1', currentX); line.setAttribute('x2', currentX);
+                text.setAttribute('x', currentX);
+                text.textContent = 'CURRENT TIME (' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0') + ')';
+                line.style.display = 'block'; text.style.display = 'block';
+            } else {
+                line.style.display = 'none'; text.style.display = 'none';
+            }
         });
-
-        function showTooltip(e) {
-            const dot = e.target; const cy = parseFloat(dot.getAttribute('cy')); const cx = parseFloat(dot.getAttribute('cx'));
-            const timeStr = `${String(Math.round((cx - 60) / 32.5)).padStart(2, '0')}:00`;
-            let label = dot.classList.contains('color-wave') ? 'Wave' : dot.classList.contains('color-swell') ? 'Swell' : 'Tide';
-            let cls = dot.classList.contains('color-wave') ? 'color-wave' : dot.classList.contains('color-swell') ? 'color-swell' : 'color-tide';
-            const height = ((360 - cy) / 80).toFixed(2);
-            let content = `<div class="tt-title ${cls}">${label} (${timeStr})</div><div class="tt-row">height: <span class="tt-num">${height}m</span></div>`;
-            if (dot.hasAttribute('data-period')) { content += `<div class="tt-row">period: <span class="tt-num">${dot.getAttribute('data-period')}s</span></div>`; }
-            tooltip.innerHTML = content; tooltip.style.display = 'block';
-        }
-        function moveTooltip(e) {
-            const rect = container.getBoundingClientRect();
-            tooltip.style.left = `${e.clientX - rect.left + container.scrollLeft + 12}px`;
-            tooltip.style.top = `${e.clientY - rect.top + container.scrollTop - 12}px`;
-        }
-    })();
+    }
+    updateTimeline();
+    setInterval(updateTimeline, 30000);
+})();
 </script>

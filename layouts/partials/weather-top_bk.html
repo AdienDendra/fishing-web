@@ -1,0 +1,334 @@
+<style>
+    .status-indicator-dot { background-color: #10b981; }
+    .status-text-green { color: #059669; }
+    .dark .status-text-green { color: #34d399; }
+    .live-ping-animation { animation: faultless-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
+    @keyframes faultless-ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
+
+    /* LAYOUT UTAMA UTK HEADER KONTROL (MOBILE: STACKED GRID) */
+    .geo-header-row { display: flex !important; flex-direction: column !important; gap: 14px !important; width: 100% !important; }
+    .geo-left-group { display: flex !important; flex-direction: column !important; width: 100% !important; }
+    
+    /* Grid Engine untuk Mobile (2 Kolom) */
+    .geo-fields-container { 
+        display: grid !important; 
+        grid-template-columns: 1fr auto !important; 
+        gap: 10px !important; 
+        width: 100% !important; 
+    }
+    .geo-loc-wrapper { grid-column: span 2 !important; } /* Baris 1: Full-width */
+    .geo-date-wrapper { grid-column: span 1 !important; } /* Baris 2 */
+    
+    .geo-input-wrapper { display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important; }
+    .geo-input-field, .geo-select-field { width: 100% !important; min-width: 0 !important; }
+    
+    /* Membuat teks label "Location:" dan "Date:" sejajar rata kiri pada mobile */
+    .geo-label { min-width: 70px !important; display: inline-block !important; flex-shrink: 0 !important; }
+    
+    /* Data Updated rata kiri di mobile */
+    .geo-right-group { text-align: left !important; width: 100% !important; }
+
+    /* RESPONSIVITAS DESKTOP (BREAKPOINT SM / 640px ke atas) */
+    @media (min-width: 640px) {
+        .geo-header-row { flex-direction: row !important; justify-content: space-between !important; align-items: center !important; }
+        .geo-left-group { flex-direction: row !important; align-items: center !important; width: auto !important; }
+        
+        .geo-fields-container { display: flex !important; flex-wrap: nowrap !important; width: auto !important; }
+        .geo-loc-wrapper, .geo-date-wrapper { grid-column: auto !important; width: auto !important; flex: none !important; }
+        
+        .geo-input-field { width: 180px !important; max-width: 180px !important; }
+        .geo-select-field { width: 180px !important; max-width: 180px !important; }
+        .geo-label { min-width: auto !important; }
+        
+        /* Kembalikan rata kanan saat di desktop */
+        .geo-right-group { text-align: right !important; width: auto !important; }
+    }
+
+    /* TOMBOL CHECK */
+    .geo-check-btn {
+        background-color: #2563eb !important; color: #ffffff !important; font-weight: 600 !important;
+        padding: 5px 14px !important; border-radius: 6px !important; border: none !important;
+        cursor: pointer !important; display: inline-flex !important; align-items: center !important;
+        justify-content: center !important; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        flex-shrink: 0 !important; transition: background-color 0.1s ease-in-out, transform 0.05s ease !important;
+    }
+    .geo-check-btn:hover { background-color: #1d4ed8 !important; }
+    .geo-check-btn:active { transform: scale(0.93) !important; background-color: #1e40af !important; }
+    .dark .geo-check-btn { background-color: #3b82f6 !important; }
+    .dark .geo-check-btn:hover { background-color: #2563eb !important; }
+    .dark .geo-check-btn:active { transform: scale(0.93) !important; background-color: #1d4ed8 !important; }
+    .geo-check-btn:disabled { opacity: 0.6 !important; cursor: not-allowed !important; transform: none !important; }
+
+    /* TOMBOL MAP TRIGGER TRIGGER (📍) */
+    .geo-map-trigger-btn {
+        border-radius: 6px !important; padding: 0 10px !important; cursor: pointer !important;
+        display: inline-flex !important; align-items: center !important; justify-content: center !important;
+        height: 34px !important; transition: background-color 0.1s ease !important;
+    }
+    .geo-map-trigger-btn { background-color: #3b82f6 !important; }
+    .geo-map-trigger-btn:hover { background-color: #2563eb !important; }
+    .dark .geo-map-trigger-btn { background-color: #3b82f6 !important; }
+    .dark .geo-map-trigger-btn:hover { background-color: #2563eb !important; }
+
+    /* STYLING MODAL OPENSTREETMAP (DARK THEME COMPATIBLE) */
+    .geo-modal-overlay {
+        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); z-index: 99999; align-items: center; justify-content: center;
+        padding: 16px;
+    }
+    .geo-modal-content {
+        background-color: #ffffff; border-radius: 8px; width: 100%; max-width: 850px;
+        height: 80vh; max-height: 520px; display: flex; flex-direction: column; overflow: hidden;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    /* GANTI BARIS INI DI KODE ANDA */
+    .dark .geo-modal-content { 
+        background-color: #1E293B; /* Mengganti #171717 dengan warna dasar navy dashboard Anda */
+        border: 1px solid #2d3d4f; /* Mengganti #262626 dengan border biru gelap tipis agar rapi */
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .geo-modal-header {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; border-bottom: 1px solid #e5e7eb;
+    }
+    .dark .geo-modal-header { border-bottom-color: #262626; }
+    .geo-modal-title { font-weight: 600; color: #1f2937; }
+    .dark .geo-modal-title { color: #f3f4f6; }
+    .geo-modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #6b7280; }
+    .dark .geo-modal-close { color: #a3a3a3; }
+    
+    .geo-map-sidebar { width: 100%; max-height: 140px; overflow-y: auto; background-color: #f9fafb; border-bottom: 1px solid #e5e7eb; }
+    @media (min-width: 640px) { .geo-map-sidebar { width: 32%; max-height: none; border-bottom: none; border-right: 1px solid #e5e7eb; } }
+    .dark .geo-map-sidebar { background-color: #1c1c1c; border-color: #262626; }
+    
+    .geo-spot-list { list-style: none; padding: 0; margin: 0; }
+    .geo-spot-item {
+        padding: 10px 14px; border-bottom: 1px solid #e5e7eb; cursor: pointer;
+        font-size: 13px; color: #4b5563; transition: background-color 0.1s;
+    }
+    .dark .geo-spot-item { border-bottom-color: #262626; color: #d4d4d4; }
+    .geo-spot-item:hover, .geo-spot-item.active { background-color: #eff6ff; color: #1d4ed8; }
+    .dark .geo-spot-item:hover, .dark .geo-spot-item.active { background-color: #1e3a8a; color: #eff6ff; }
+    
+    #geo-osm-render-zone { 
+        width: 100% !important; 
+        height: 100% !important; 
+        min-height: 420px !important; 
+        position: relative !important; 
+        display: block !important;
+    }
+
+    /* Fix invert warna map tile jika server menggunakan global dark reader, biarkan tile default */
+    .leaflet-tile-container { filter: none !important; }
+    
+    .leaflet-container img {
+        max-width: none !important;
+        max-height: none !important;
+    }
+    
+</style>
+
+<div class="w-full space-y-4">
+
+    <div id="partial-status-banner" style="display:none;" class="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded px-3 py-1.5">
+        ⏳ AI analysis is processing in the background. Data will auto-refresh shortly.
+    </div>
+
+    <div class="geo-header-row text-sm md:text-base text-neutral-600 dark:text-neutral-400 font-mono">
+        
+        <div class="geo-left-group font-sans">
+            <div class="geo-fields-container">
+                
+                <div class="geo-input-wrapper geo-loc-wrapper">
+                    <label for="location-input" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Location:</label>
+                    <div style="display: flex !important; width: 100% !important; gap: 6px !important;">
+                        <input 
+                            type="text" 
+                            id="location-input" 
+                            name="location" 
+                            placeholder="Botany Bay" 
+                            class="geo-input-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                        />
+                        <button type="button" id="geo-map-trigger" class="geo-map-trigger-btn" title="Select location from Map">📍</button>
+                    </div>
+                </div>
+                
+                <div class="geo-input-wrapper geo-date-wrapper">
+                    <label for="date-select" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Date:</label>
+                    <select 
+                        id="date-select" 
+                        name="date" 
+                        class="geo-select-field bg-white dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 rounded-md px-2 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
+                    >
+                    </select>
+                </div>
+
+                <button type="button" id="weather-check-btn" class="geo-check-btn text-sm sm:text-base">Check</button>
+                
+            </div>
+        </div>
+
+        <div class="geo-right-group text-neutral-600 dark:text-neutral-400 font-mono self-start sm:self-center pt-0.5 sm:pt-0">
+            <span>Data Updated: <strong id="data-updated-time">—</strong></span>            
+            <span class="text-xs opacity-60 block sm:inline font-sans"> (auto-refreshed daily)</span>
+        </div>
+    </div>
+
+    <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
+
+    <div class="font-sans w-full">
+        <div class="flex items-center justify-center text-center gap-2.5 text-sm w-full pb-1">
+            <span class="flex h-2.5 w-2.5 relative shrink-0">
+                <span class="status-indicator-dot live-ping-animation absolute inline-flex h-full w-full rounded-full opacity-75"></span>
+                <span class="status-indicator-dot relative inline-flex rounded-full h-2.5 w-2.5"></span>
+            </span>
+            <p id="safety-status-p" class="text-base leading-relaxed status-text-green">
+                <strong>SAFETY STATUS:</strong> <strong id="safety-status-strong">Loading...</strong> <span id="safety-status-note" class="text-neutral-500 dark:text-neutral-400"></span>
+            </p>
+        </div>
+
+        <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
+
+        <div class="flex flex-row justify-between items-center text-sm sm:text-base font-mono text-neutral-600 dark:text-neutral-400 pt-1 w-full">
+            <div class="w-1/3 flex items-center justify-start gap-1">
+                <span>🌅 Sunrise:</span>
+                <span id="sunrise-value" class="font-semibold text-neutral-800 dark:text-neutral-200">—</span>
+            </div>
+            <div class="w-1/3 flex items-center justify-center gap-1 border-x border-neutral-200 dark:border-neutral-800 px-2 text-center">
+                <span>🌇 Sunset:</span>
+                <span id="sunset-value" class="font-semibold text-neutral-800 dark:text-neutral-200">—</span>
+            </div>
+            <div class="w-1/3 flex items-center justify-end gap-1 text-right">
+                <span>🐟 Fish Activity:</span>
+                <span id="fish-activity-value" class="font-semibold text-blue-600 dark:text-blue-400 whitespace-nowrap">—</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal — ganti yang lama -->
+<div id="geo-map-modal-container" class="geo-modal-overlay">
+    <div class="geo-modal-content font-sans">
+        <div class="geo-modal-header">
+            <span class="geo-modal-title text-sm sm:text-base">🗺️ Select Fishing Spot</span>
+            <button type="button" id="geo-modal-close-x" class="geo-modal-close">&times;</button>
+        </div>
+        <div style="flex:1; min-height:0; overflow:hidden;">
+            <div id="geo-osm-render-zone" style="width:100%; height:100%; min-height:420px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Date select
+    function generateForecastDays() {
+        const dateSelect = document.getElementById('date-select');
+        if (!dateSelect) return;
+        dateSelect.innerHTML = '';
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+            let label = `${days[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+            if (i === 0) label = `Today (${label})`;
+            if (i === 1) label = `Tomorrow (${label})`;
+            const opt = document.createElement('option');
+            opt.value = val; opt.textContent = label;
+            dateSelect.appendChild(opt);
+        }
+    }
+    generateForecastDays();
+
+    // Fishing spots — hardcoded for now, will load from S3 later
+    const SPOTS = [
+        { name: 'Botany Bay',      lat: -33.9929, lng: 151.2172 },
+        { name: 'Cronulla',        lat: -34.0574, lng: 151.1519 },
+        { name: 'Maroubra Beach',  lat: -33.9491, lng: 151.2569 },
+        { name: 'Bondi Beach',     lat: -33.8908, lng: 151.2743 },
+        { name: 'Long Reef',       lat: -33.7397, lng: 151.3015 },
+        { name: 'Cape Solander',   lat: -34.0189, lng: 151.2294 },
+        { name: 'Dee Why',         lat: -33.7510, lng: 151.2946 },
+        { name: 'Sydney Harbour',  lat: -33.8568, lng: 151.2153 },
+    ];
+
+    const modal    = document.getElementById('geo-map-modal-container');
+    const openBtn  = document.getElementById('geo-map-trigger');
+    const closeBtn = document.getElementById('geo-modal-close-x');
+    let mapEngine  = null;
+
+    function closeModal() { modal.style.display = 'none'; }
+
+    function initLeafletMap() {
+        if (typeof L === 'undefined' || typeof L.map !== 'function') {
+            console.error('Leaflet not loaded');
+            return;
+        }
+        if (mapEngine) {
+            setTimeout(() => { mapEngine.invalidateSize(); }, 100);
+            return;
+        }
+
+        mapEngine = L.map('geo-osm-render-zone', { zoomControl: true })
+                     .setView([-33.95, 151.23], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(mapEngine);
+
+        // Red pin icon
+        const redIcon = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+            iconSize:   [25, 41],
+            iconAnchor: [12, 41],
+            popupAnchor:[1, -34],
+            shadowSize: [41, 41]
+        });
+
+        SPOTS.forEach(spot => {
+            L.marker([spot.lat, spot.lng], { icon: redIcon })
+             .addTo(mapEngine)
+             .bindPopup(`
+                <div style="font-family:sans-serif; min-width:130px;">
+                    <strong style="display:block; margin-bottom:6px; font-size:13px;">${spot.name}</strong>
+                    <button onclick="window.selectFishingSpot('${spot.name}', ${spot.lat}, ${spot.lng})"
+                        style="width:100%; background:#2563eb; color:#fff; border:none; 
+                               padding:5px 0; border-radius:4px; cursor:pointer; font-size:12px; font-weight:600;">
+                        ✓ Select This Spot
+                    </button>
+                </div>
+             `);
+        });
+
+        setTimeout(() => mapEngine.invalidateSize(), 150);
+    }
+
+    // Global — called from popup button
+    window.selectFishingSpot = function(name, lat, lng) {
+        const input = document.getElementById('location-input');
+        if (input) input.value = name;
+        closeModal();
+        const checkBtn = document.getElementById('weather-check-btn');
+        if (checkBtn) checkBtn.click();
+    };
+
+    if (openBtn) {
+        openBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+            setTimeout(initLeafletMap, 300);
+        });
+    }
+    if (closeBtn) closeBtn.addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+})();
+</script>
+
+<script src="/js/weather-fetch.js"></script>
