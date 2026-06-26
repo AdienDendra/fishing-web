@@ -83,11 +83,15 @@
         background-color: #ffffff; border-radius: 8px; width: 100%; max-width: 850px;
         height: 80vh; max-height: 520px; display: flex; flex-direction: column; overflow: hidden;
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        display: flex !important;
+        flex-direction: column !important;
     }
     /* GANTI BARIS INI DI KODE ANDA */
     .dark .geo-modal-content { 
         background-color: #1E293B; /* Mengganti #171717 dengan warna dasar navy dashboard Anda */
         border: 1px solid #2d3d4f; /* Mengganti #262626 dengan border biru gelap tipis agar rapi */
+        display: flex !important;
+        flex-direction: column !important;
     }
     
     .geo-modal-header {
@@ -211,11 +215,10 @@
 
 <div id="geo-map-modal-container" class="geo-modal-overlay">
     <div class="geo-modal-content font-sans">
-        <div class="geo-modal-header">
-            <span class="geo-modal-title text-sm sm:text-base">Select Fishing Spot (NSW Coast)</span>
-            <button type="button" id="geo-modal-close-x" class="geo-modal-close">&times;</button>
+        <div class="geo-modal-header">...</div>
+        <div style="flex:1; overflow:hidden; position:relative;">
+            <div id="geo-osm-render-zone" style="width:100%;height:100%;min-height:350px;"></div>
         </div>
-        <div id="geo-osm-render-zone"></div>
     </div>
 </div>
 
@@ -313,11 +316,14 @@
                                 </div>
                             `);
                     });
+                    setTimeout(() => mapEngine.invalidateSize(), 100); // force redraw
                 } else {
-                    mapEngine.invalidateSize();
-                    mapEngine.setView(sydneyDefaultCenter, 11);
+                    setTimeout(() => {
+                        mapEngine.invalidateSize();
+                        mapEngine.setView(sydneyDefaultCenter, 11);
+                    }, 100);
                 }
-            }, 250); 
+            }, 300); 
         });
 
         function closeMapModal() { 
@@ -336,4 +342,4 @@
     }
 </script>
 
-<script src="./js/weather-fetch.js"></script>
+<script src="/js/weather-fetch.js"></script>
