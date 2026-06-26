@@ -90,15 +90,15 @@
 
             {{/* ── X axis tick dots ── */}}
             <g fill="currentColor" opacity="0.4">
-                {{ range seq 60 65 775 }}
+                {{ range seq 60 65 840 }}
                 <circle cx="{{ . }}" cy="360" r="2" />
                 {{ end }}
             </g>
 
             {{/* ── X axis time labels ── */}}
-            {{ $times := slice "00:00" "02:00" "04:00" "06:00" "08:00" "10:00" "12:00" "14:00" "16:00" "18:00" "20:00" "22:00" }}
+            {{ $times := slice "00:00" "02:00" "04:00" "06:00" "08:00" "10:00" "12:00" "14:00" "16:00" "18:00" "20:00" "22:00" "24:00" }}
             <g fill="currentColor" class="svg-text-small" text-anchor="middle">
-                {{ range $i, $x := seq 60 65 775 }}
+                {{ range $i, $x := seq 60 65 840 }}
                 <text x="{{ $x }}" y="392">{{ index $times $i }}</text>
                 {{ end }}
             </g>
