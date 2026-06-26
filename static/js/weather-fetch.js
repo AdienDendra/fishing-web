@@ -65,33 +65,27 @@
         return SVG_X_START + (hour / 24) * (SVG_X_END - SVG_X_START);
     }
 
-    // GANTI fungsi buildPath lama dengan ini:
     function buildPath(values, min, max) {
         if (!values || values.length === 0) return '';
 
-        // Tambah titik jam 24 = nilai jam 23
-        const extValues = [...values, values[values.length - 1] ?? 0];
-        const pts = extValues.map((v, i) => ({
+        // 24 hourly points, x=60 (hour 0) to x=822.5 (hour 23)
+        const pts = values.slice(0, 24).map((v, i) => ({
             x: parseFloat(toX(i).toFixed(1)),
             y: parseFloat(toY(v, min, max).toFixed(1))
         }));
 
-        // Catmull-Rom to cubic bezier — tension 0.5 for smoother curves
+        // Catmull-Rom bezier — tension 0.5
         const tension = 0.5;
         let d = `M ${pts[0].x} ${pts[0].y}`;
-
         for (let i = 0; i < pts.length - 1; i++) {
-            const p0 = i > 0 ? pts[i - 1] : pts[i];
+            const p0 = i > 0 ? pts[i-1] : pts[i];
             const p1 = pts[i];
-            const p2 = pts[i + 1];
-            const p3 = i < pts.length - 2 ? pts[i + 2] : pts[i + 1];
-
-            // Control points clamped to SVG bounds
-            const cp1x = Math.max(60, Math.min(840, p1.x + (p2.x - p0.x) * tension / 3));
-            const cp1y = Math.max(40, Math.min(360, p1.y + (p2.y - p0.y) * tension / 3));
-            const cp2x = Math.max(60, Math.min(840, p2.x - (p3.x - p1.x) * tension / 3));
-            const cp2y = Math.max(40, Math.min(360, p2.y - (p3.y - p1.y) * tension / 3));
-
+            const p2 = pts[i+1];
+            const p3 = i < pts.length-2 ? pts[i+2] : pts[i+1];
+            const cp1x = Math.max(60, Math.min(840, p1.x + (p2.x-p0.x)*tension/3));
+            const cp1y = Math.max(40, Math.min(360, p1.y + (p2.y-p0.y)*tension/3));
+            const cp2x = Math.max(60, Math.min(840, p2.x - (p3.x-p1.x)*tension/3));
+            const cp2y = Math.max(40, Math.min(360, p2.y - (p3.y-p1.y)*tension/3));
             d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x} ${p2.y}`;
         }
         return d;
