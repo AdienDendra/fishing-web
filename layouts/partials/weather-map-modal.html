@@ -50,55 +50,69 @@
         { name: 'Sydney Harbour', lat: -33.8568, lng: 151.2153 },
     ];
 
-    var modal    = document.getElementById('geo-map-modal-container');
-    var openBtn  = document.getElementById('geo-map-trigger');
-    var closeBtn = document.getElementById('geo-modal-close-x');
+    var modal     = document.getElementById('geo-map-modal-container');
+    var openBtn   = document.getElementById('geo-map-trigger');
+    var closeBtn  = document.getElementById('geo-modal-close-x');
     var mapEngine = null;
 
     function closeModal() { modal.style.display = 'none'; }
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     window.addEventListener('click', function(e) { if (e.target === modal) closeModal(); });
 
-    function buildMap() {
+    // Gunakan _Leaflet lokal — hindari conflict dengan window.L milik theme
+    function buildMap(_Leaflet) {
         if (mapEngine) {
             setTimeout(function() { mapEngine.invalidateSize(); }, 100);
             return;
         }
-        mapEngine = L.map('geo-osm-render-zone', { zoomControl: true }).setView([-33.95, 151.23], 11);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        mapEngine = _Leaflet.map('geo-osm-render-zone', { zoomControl: true })
+                            .setView([-33.95, 151.23], 11);
+
+        _Leaflet.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors', maxZoom: 18
         }).addTo(mapEngine);
-        var redIcon = L.icon({
+
+        var redIcon = _Leaflet.icon({
             iconUrl:    'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
             shadowUrl:  'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
             iconSize: [25,41], iconAnchor: [12,41], popupAnchor: [1,-34], shadowSize: [41,41]
         });
+
         SPOTS.forEach(function(spot) {
-            L.marker([spot.lat, spot.lng], { icon: redIcon }).addTo(mapEngine).bindPopup(
-                '<div style="font-family:sans-serif;min-width:130px;">' +
-                '<strong style="display:block;margin-bottom:6px;font-size:13px;">' + spot.name + '</strong>' +
-                '<button onclick="window.selectFishingSpot(\'' + spot.name + '\',' + spot.lat + ',' + spot.lng + ')" ' +
-                'style="width:100%;background:#2563eb;color:#fff;border:none;padding:5px 0;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">' +
-                '✓ Select This Spot</button></div>'
-            );
+            _Leaflet.marker([spot.lat, spot.lng], { icon: redIcon })
+                    .addTo(mapEngine)
+                    .bindPopup(
+                        '<div style="font-family:sans-serif;min-width:130px;">' +
+                        '<strong style="display:block;margin-bottom:6px;font-size:13px;">' + spot.name + '</strong>' +
+                        '<button onclick="window.selectFishingSpot(\'' + spot.name + '\',' + spot.lat + ',' + spot.lng + ')" ' +
+                        'style="width:100%;background:#2563eb;color:#fff;border:none;padding:5px 0;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">' +
+                        '✓ Select This Spot</button></div>'
+                    );
         });
+
         setTimeout(function() { mapEngine.invalidateSize(); }, 150);
     }
 
     function initLeafletMap() {
-        if (typeof L !== 'undefined' && typeof L.map === 'function') {
-            buildMap();
-            return;
-        }
-        // Leaflet belum load — inject on-demand
+        // Simpan window.L yang mungkin sudah di-overwrite theme
+        var savedL = window.L;
+
         var css = document.createElement('link');
         css.rel = 'stylesheet';
-        css.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        css.href = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css';
         document.head.appendChild(css);
+
         var js = document.createElement('script');
-        js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        js.onload = function() { buildMap(); };
-        js.onerror = function() { console.error('Failed to load Leaflet'); };
+        js.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
+        js.onload = function() {
+            // Ambil Leaflet dari window.L setelah load, simpan ke var lokal
+            var _Leaflet = window.L;
+            // Restore window.L ke nilai semula (milik theme)
+            window.L = savedL;
+            // Pakai _Leaflet lokal untuk build map
+            buildMap(_Leaflet);
+        };
+        js.onerror = function() { console.error('[map-modal] Failed to load Leaflet from CDN'); };
         document.head.appendChild(js);
     }
 
