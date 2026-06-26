@@ -113,7 +113,7 @@
         group.innerHTML = '';
         const dotHours = [0,2,4,6,8,10,12,14,16,18,20,22,24];
         dotHours.forEach(h => {
-            const v = values[h] ?? 0;
+            const v = (h < 24 ? values[h] : values[23]) ?? 0;
             const circle = document.createElementNS(SVG_NS, 'circle');
             circle.setAttribute('cx', toX(h).toFixed(1));
             circle.setAttribute('cy', toY(v, min, max).toFixed(1));
