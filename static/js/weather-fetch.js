@@ -69,7 +69,9 @@
     function buildPath(values, min, max) {
         if (!values || values.length === 0) return '';
 
-        const pts = values.map((v, i) => ({
+        // Tambah titik jam 24 = nilai jam 23
+        const extValues = [...values, values[values.length - 1] ?? 0];
+        const pts = extValues.map((v, i) => ({
             x: parseFloat(toX(i).toFixed(1)),
             y: parseFloat(toY(v, min, max).toFixed(1))
         }));
