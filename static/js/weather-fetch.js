@@ -108,10 +108,11 @@
         // Update smooth 24-point path
         pathEl.setAttribute('d', buildPath(values, min, max));
 
-        // Regenerate dots every 2h → 13 points: 0,2,4,...,24
+        // Dots every 2h: 0,2,4,...,22 plus final dot at hour 23
         group.innerHTML = '';
-        for (let h = 0; h < 24; h += 2) {
-            const v = h < 24 ? (values[h] ?? 0) : (values[23] ?? 0);
+        const dotHours = [0,2,4,6,8,10,12,14,16,18,20,22,23];
+        dotHours.forEach(h => {
+            const v = values[h] ?? 0;
             const circle = document.createElementNS(SVG_NS, 'circle');
             circle.setAttribute('cx', toX(h).toFixed(1));
             circle.setAttribute('cy', toY(v, min, max).toFixed(1));
@@ -120,7 +121,7 @@
             circle.setAttribute(dataAttr, v.toFixed(2));
             circle.classList.add(`color-${seriesName}`, 'graph-dot');
             group.appendChild(circle);
-        }
+        });
     }
 
     // ─── Tooltip ──────────────────────────────────────────────────────────────
