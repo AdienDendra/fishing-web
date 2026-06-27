@@ -14,24 +14,28 @@
     Optional:
       danger_val float   — y value for red danger line, default 0 (hidden)
       legend     slice   — parallel to series, display labels for legend
-                           e.g. (slice "Wave Height" "Swell Height" "Tide Level")
       danger_label string — legend label for danger line, e.g. "DANGER (≥2.00m)"
 
-    Generated IDs (used by weather-fetch.js):
-      SVG:            telemetry-svg-{id}
-      Path per series: {series_name}-{id}-path   e.g. wave-height-path
-      Dots per series: {series_name}-{id}-dots   e.g. wave-height-dots
-      Timeline:       time-line-{id}, time-text-{id}
+    Generated IDs used by weather-fetch.js:
+      SVG:             telemetry-svg-{id}
+      Path per series: {series_name}-{id}-path
+      Dots per series: {series_name}-{id}-dots
+      Timeline:        time-line-{id}, time-text-{id}
 */}}
 
 {{ $id          := .id }}
 {{ $title       := .title }}
 {{ $y_unit      := .y_unit }}
-{{ $y_max       := .y_max       | default 1.0 }}
-{{ $danger_val  := .danger_val  | default 0.0 }}
-{{ $series      := .series      | default (slice) }}
-{{ $legend      := .legend      | default (slice) }}
+{{ $y_max       := .y_max        | default 1.0 }}
+{{ $danger_val  := .danger_val   | default 0.0 }}
+{{ $series      := .series       | default (slice) }}
+{{ $legend      := .legend       | default (slice) }}
 {{ $dangerLabel := .danger_label | default "" }}
+
+{{/* Chart layout constants */}}
+{{ $chart_x_start := 80 }}
+{{ $chart_x_end   := 820 }}
+{{ $xTicks := slice 80 142 203 265 327 388 450 512 573 635 697 758 820 }}
 
 {{/* Compute danger line y position */}}
 {{ $danger_y := 360.0 }}
@@ -44,53 +48,73 @@
 
     {{/* Title */}}
     <div class="flex justify-center items-center w-full">
-        <h3 class="text-s font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+        <h3 class="text-sm font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
             {{ $title }}
         </h3>
     </div>
 
     {{/* SVG */}}
-    {{/* SVG */}}
     <div class="telemetry-container py-2 font-mono relative select-none w-full">
         <svg id="telemetry-svg-{{ $id }}"
-            viewBox="0 0 900 410"
-            class="responsive-svg w-full h-auto block"
-            xmlns="http://www.w3.org/2000/svg">
+             viewBox="0 0 900 410"
+             class="responsive-svg w-full h-auto block"
+             xmlns="http://www.w3.org/2000/svg">
 
             {{/* ── Grid lines ── */}}
             {{ range seq 40 40 360 }}
-            <line x1="60" y1="{{ . }}" x2="840" y2="{{ . }}" class="chart-grid-line" stroke-width="1" />
+            <line x1="{{ $chart_x_start }}" y1="{{ . }}"
+                  x2="{{ $chart_x_end }}"   y2="{{ . }}"
+                  class="chart-grid-line" stroke-width="1" />
             {{ end }}
 
             {{/* ── Danger threshold ── */}}
             {{ if gt (float $danger_val) 0.0 }}
-            <line x1="60"  y1="{{ $danger_y }}"
-                  x2="840" y2="{{ $danger_y }}"
+            <line x1="{{ $chart_x_start }}" y1="{{ $danger_y }}"
+                  x2="{{ $chart_x_end }}"   y2="{{ $danger_y }}"
                   stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.9" />
             {{ end }}
 
             {{/* ── Border lines ── */}}
-            <line x1="60"  y1="30"  x2="60"  y2="370" stroke="currentColor" stroke-width="1" opacity="0.15" />
-            <line x1="840" y1="30"  x2="840" y2="370" stroke="currentColor" stroke-width="1" opacity="0.15" />
-            <line x1="60"  y1="360" x2="840" y2="360" stroke="currentColor" stroke-width="1" opacity="0.3"  />
+            <line x1="{{ $chart_x_start }}" y1="30"
+                  x2="{{ $chart_x_start }}" y2="370"
+                  stroke="currentColor" stroke-width="1" opacity="0.15" />
 
-            {{/* ── Y axis labels ── */}}
-            <text x="55"  y="20" fill="currentColor" text-anchor="end"   class="svg-text-micro opacity-50">{{ $y_unit }}</text>
-            <text x="848" y="20" fill="currentColor" text-anchor="start" class="svg-text-micro opacity-50">{{ $y_unit }}</text>
+            <line x1="{{ $chart_x_end }}" y1="30"
+                  x2="{{ $chart_x_end }}" y2="370"
+                  stroke="currentColor" stroke-width="1" opacity="0.15" />
+
+            <line x1="{{ $chart_x_start }}" y1="360"
+                  x2="{{ $chart_x_end }}"   y2="360"
+                  stroke="currentColor" stroke-width="1" opacity="0.3" />
+
+            {{/* ── Y axis unit labels ── */}}
+            <text x="72"  y="20" fill="currentColor" text-anchor="end"
+                  class="svg-text-micro opacity-50">{{ $y_unit }}</text>
+
+            <text x="828" y="20" fill="currentColor" text-anchor="start"
+                  class="svg-text-micro opacity-50">{{ $y_unit }}</text>
+
+            {{/* ── Y axis value labels ── */}}
             <g fill="currentColor" class="svg-text-small">
                 {{ range $i, $label := .labels }}
                 {{ $y_pos    := add 44 (mul $i 40) }}
                 {{ $isDanger := eq (printf "%.4g" (float $label)) (printf "%.4g" (float $danger_val)) }}
-                <text x="50"  y="{{ $y_pos }}" text-anchor="end"
-                    {{ if $isDanger }}fill="#ef4444" font-weight="bold"{{ end }}>{{ $label }}</text>
-                <text x="848" y="{{ $y_pos }}" text-anchor="start"
-                    {{ if $isDanger }}fill="#ef4444" font-weight="bold"{{ end }}>{{ $label }}</text>
+
+                <text x="70" y="{{ $y_pos }}" text-anchor="end"
+                    {{ if $isDanger }}fill="#ef4444" font-weight="bold"{{ end }}>
+                    {{ $label }}
+                </text>
+
+                <text x="830" y="{{ $y_pos }}" text-anchor="start"
+                    {{ if $isDanger }}fill="#ef4444" font-weight="bold"{{ end }}>
+                    {{ $label }}
+                </text>
                 {{ end }}
             </g>
 
             {{/* ── X axis tick dots ── */}}
             <g fill="currentColor" opacity="0.4">
-                {{ range seq 60 65 840 }}
+                {{ range $xTicks }}
                 <circle cx="{{ . }}" cy="360" r="2" />
                 {{ end }}
             </g>
@@ -98,7 +122,7 @@
             {{/* ── X axis time labels ── */}}
             {{ $times := slice "00:00" "02:00" "04:00" "06:00" "08:00" "10:00" "12:00" "14:00" "16:00" "18:00" "20:00" "22:00" "24:00" }}
             <g fill="currentColor" class="svg-text-small" text-anchor="middle">
-                {{ range $i, $x := seq 60 65 840 }}
+                {{ range $i, $x := $xTicks }}
                 <text x="{{ $x }}" y="392">{{ index $times $i }}</text>
                 {{ end }}
             </g>
@@ -114,8 +138,10 @@
             {{/* ── Current time indicator ── */}}
             <line id="time-line-{{ $id }}" x1="-10" y1="40" x2="-10" y2="360"
                   stroke="#FFDD00" stroke-width="1.5" opacity="0.8" />
+
             <text id="time-text-{{ $id }}" x="-10" y="33"
-                  fill="#FFDD00" text-anchor="middle" class="svg-text-micro font-bold"></text>
+                  fill="#FFDD00" text-anchor="middle"
+                  class="svg-text-micro font-bold"></text>
 
         </svg>
     </div>
@@ -131,6 +157,7 @@
                 <span class="font-bold text-neutral-700 dark:text-neutral-300">{{ $lbl }}</span>
             </div>
             {{ end }}
+
             {{ if $dangerLabel }}
             <div class="flex items-center gap-1">
                 <span class="color-dangerous">------</span>

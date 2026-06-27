@@ -28,8 +28,8 @@
     };
 
     // SVG coordinate constants (matches viewBox="0 0 900 410")
-    const SVG_X_START = 60;
-    const SVG_X_END   = 840;
+    const SVG_X_START = 80;
+    const SVG_X_END   = 820;
     const SVG_Y_TOP   = 40;
     const SVG_Y_BOT   = 360;
 
@@ -102,10 +102,10 @@
             const p0 = i > 0 ? pts[i-1] : pts[i];
             const p1 = pts[i], p2 = pts[i+1];
             const p3 = i < pts.length-2 ? pts[i+2] : pts[i+1];
-            const cp1x = Math.max(60, Math.min(840, p1.x + (p2.x-p0.x)*tension/3));
-            const cp1y = Math.max(40, Math.min(360, p1.y + (p2.y-p0.y)*tension/3));
-            const cp2x = Math.max(60, Math.min(840, p2.x - (p3.x-p1.x)*tension/3));
-            const cp2y = Math.max(40, Math.min(360, p2.y - (p3.y-p1.y)*tension/3));
+            const cp1x = Math.max(SVG_X_START, Math.min(SVG_X_END, p1.x + (p2.x-p0.x)*tension/3));
+            const cp1y = Math.max(SVG_Y_TOP,   Math.min(SVG_Y_BOT, p1.y + (p2.y-p0.y)*tension/3));
+            const cp2x = Math.max(SVG_X_START, Math.min(SVG_X_END, p2.x - (p3.x-p1.x)*tension/3));
+            const cp2y = Math.max(SVG_Y_TOP,   Math.min(SVG_Y_BOT, p2.y - (p3.y-p1.y)*tension/3));
             d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x} ${p2.y}`;
         }
         return d;
@@ -321,7 +321,7 @@
 
         if (!data.analysis) {
             panel.innerHTML = `
-                <div class="flex items-center gap-2 text-sm text-neutral-400 dark:text-neutral-500 italic">
+                <div class="flex items-center gap-2 text-sm text-neutral-400 dark:text-neutral-500">
                     <svg class="animate-spin h-4 w-4 text-blue-400 shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 14.627 0 20 12h-4a4 4 0 00-4-4V4A8 8 0 014 12z"></path>
@@ -329,10 +329,67 @@
                     AI analysis generating... auto-refreshing shortly.
                 </div>`;
         } else {
-            const escaped = data.analysis.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            panel.innerHTML = `<p class="text-sm leading-relaxed text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">${escaped}</p>`;
+            function escapeHTML(str) {
+                return String(str || '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;');
+            }
+
+            function inlineMarkdown(str) {
+                return escapeHTML(str)
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            }
+
+            function formatAIAnalysis(text) {
+                const lines = String(text || '')
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(Boolean);
+
+                let html = '';
+                let inList = false;
+
+                function closeList() {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                }
+
+                lines.forEach(line => {
+                    // Heading: ## or ###
+                    if (/^#{2,4}\s+/.test(line)) {
+                        closeList();
+                        const title = line.replace(/^#{2,4}\s+/, '');
+                        html += `<h4>${inlineMarkdown(title)}</h4>`;
+                        return;
+                    }
+
+                    // Bullet: * item or - item
+                    if (/^(\*|-)\s+/.test(line)) {
+                        if (!inList) {
+                            html += '<ul>';
+                            inList = true;
+                        }
+                        const item = line.replace(/^(\*|-)\s+/, '');
+                        html += `<li>${inlineMarkdown(item)}</li>`;
+                        return;
+                    }
+
+                    closeList();
+                    html += `<p>${inlineMarkdown(line)}</p>`;
+                });
+
+                closeList();
+
+                return html || '<p>No analysis available.</p>';
+            }
+
+            panel.innerHTML = formatAIAnalysis(data.analysis);
+
             if (data.model_used) {
-                panel.innerHTML += `<p class="text-xs text-neutral-400 dark:text-neutral-500 mt-2 font-mono">Model: ${data.model_used}</p>`;
+                panel.innerHTML += `<div class="ai-analysis-model">Model: ${data.model_used}</div>`;
             }
         }
     }

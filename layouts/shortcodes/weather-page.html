@@ -65,11 +65,16 @@
 
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
-<div class="w-full space-y-2 font-sans">
-    <h3 class="text-sm font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
-        🤖 AI FISHING ANALYSIS
-    </h3>
-    <div id="ai-analysis-panel" class="text-sm text-neutral-500 dark:text-neutral-400 italic">
+<div class="w-full space-y-3 font-sans">
+    <div class="w-full text-center">
+        <h3 class="text-base font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+            🤖 AI FISHING ANALYSIS
+        </h3>
+    </div>
+
+    <div class="ai-analysis-divider"></div>
+
+    <div id="ai-analysis-panel" class="ai-analysis-panel">
         Press Check to load analysis...
     </div>
 </div>
@@ -81,14 +86,13 @@
     // Current time indicator — generic, works for any blueprint SVG
     function updateTimeline() {
         const now = new Date();
-        const currentX = 60 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 780;
-
+        const currentX = 80 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 740;
         document.querySelectorAll('svg[id^="telemetry-svg-"]').forEach(svg => {
             const idSuffix = svg.id.replace('telemetry-svg-', '');
             const line = document.getElementById('time-line-' + idSuffix);
             const text = document.getElementById('time-text-' + idSuffix);
             if (!line || !text) return;
-            if (currentX >= 60 && currentX <= 840) {
+            if (currentX >= 80 && currentX <= 820) {
                 line.setAttribute('x1', currentX); line.setAttribute('x2', currentX);
                 text.setAttribute('x', currentX);
                 text.textContent = 'CURRENT TIME (' +

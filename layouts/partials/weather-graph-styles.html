@@ -138,6 +138,101 @@
         font-weight: bold;
         color: var(--primary, #111827) !important;
     }
+    
+    /* ── AI Fishing Analysis ─────────────────────────────────────── */
+    .ai-analysis-panel {
+        font-size: 14px !important;
+        line-height: 1.65 !important;
+        color: #4b5563 !important; /* light: neutral-600 */
+        font-style: normal !important;
+    }
 
+    .dark .ai-analysis-panel {
+        color: #cbd5e1 !important; /* dark: slate-300 */
+    }
+
+    .ai-analysis-panel * {
+        font-style: normal !important;
+    }
+
+    .ai-analysis-panel p {
+        margin: 0 0 10px 0 !important;
+    }
+
+    .ai-analysis-panel h3,
+    .ai-analysis-panel h4 {
+        margin: 20px 0 3px 0 !important;
+        font-family: inherit !important;
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.06em !important;
+        color: #374151 !important; /* light: neutral-700 */
+    }
+
+    .dark .ai-analysis-panel h3,
+    .dark .ai-analysis-panel h4 {
+        color: #e5e7eb !important; /* dark: neutral-200 */
+    }
+
+    .ai-analysis-panel strong {
+        color: #1f2937 !important; /* light: neutral-800 */
+        font-weight: 600 !important;
+    }
+
+    .dark .ai-analysis-panel strong {
+        color: #f8fafc !important; /* dark */
+    }
+
+    .ai-analysis-panel ul {
+        list-style: none !important;
+        margin: 4px 0 12px 0 !important;  /* menjorok ke kiri */
+        padding-left: 22px !important;
+    }
+
+    .ai-analysis-panel li {
+        position: relative !important;
+        display: block !important;
+        margin: 5px 0 !important;
+        padding-left: 16px !important;
+    }
+
+    .ai-analysis-panel li::before {
+        content: "•";
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #64748b; /* light */
+        font-size: 0.85em;
+        line-height: inherit;
+    }
+
+    .dark .ai-analysis-panel li::before {
+        color: #94a3b8; /* dark */
+    }
+
+    .ai-analysis-model {
+        margin-top: 12px !important;
+        font-size: 12px !important;
+        color: #6b7280 !important; /* light: neutral-500 */
+        font-family: monospace !important;
+    }
+
+    .dark .ai-analysis-model {
+        color: #9ca3af !important; /* dark: neutral-400 */
+    }
+
+    /* ── AI Analysis title divider ─────────────────────────────── */
+    .ai-analysis-divider {
+        width: 100% !important;
+        height: 0 !important;
+        border-top: 1px solid #e5e5e5 !important; /* neutral-200 */
+        opacity: 0.5 !important;
+        margin: 12px 0 22px 0 !important;
+    }
+
+    .dark .ai-analysis-divider {
+        border-top-color: #e5e5e5 !important; /* neutral-800/60 */
+    }
 
 </style>
