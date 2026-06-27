@@ -10,7 +10,41 @@
         background-color: transparent !important;
         overflow: visible !important;
     }
-    
+
+    /* Wrapper graph dari weather-page.html */
+    .graph-scroll {
+        width: 100%;
+        min-width: 0;
+        background: transparent;
+        overflow: hidden;
+    }
+
+    /* Mobile only: horizontal slider */
+    @media (max-width: 767px) {
+        .graph-scroll {
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+
+        .responsive-svg {
+            width: 750px !important;
+            min-width: 750px !important;
+            max-width: none !important;
+            height: auto !important;
+        }
+    }
+
+    /* Desktop/tablet: no slider, graph fit column */
+    @media (min-width: 768px) {
+        .responsive-svg {
+            width: 100% !important;
+            min-width: 0 !important;
+            max-width: 100% !important;
+            height: auto !important;
+        }
+    }
+
     /* ── Grid lines ──────────────────────────────────────────────── */
     .chart-grid-line { stroke: #e5e7eb; }
     .dark .chart-grid-line { stroke: #ffffff13; }
@@ -91,13 +125,5 @@
         color: var(--primary, #111827) !important;
     }
 
-    /* ── Mobile: fixed SVG width to enable horizontal scroll ─────── */
-    @media (max-width: 767px) {
-        .responsive-svg {
-            width: 750px !important;
-            min-width: 750px !important;
-            max-width: none !important;
-            height: auto !important;
-        }
-    }
+
 </style>
