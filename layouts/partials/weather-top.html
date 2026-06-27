@@ -19,7 +19,8 @@
     .geo-date-wrapper { grid-column: span 1 !important; }
 
     .geo-input-wrapper { display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important; }
-    .geo-input-field, .geo-select-field { width: 100% !important; min-width: 0 !important; }
+    .geo-input-field { width: 100% !important; min-width: 0 !important; flex: 1 !important; }
+    .geo-select-field { width: 100% !important; min-width: 0 !important; }
     .geo-label { min-width: 70px !important; display: inline-block !important; flex-shrink: 0 !important; }
     .geo-right-group { text-align: left !important; width: 100% !important; }
 
@@ -29,7 +30,7 @@
         .geo-left-group  { flex-direction: row !important; align-items: center !important; width: auto !important; }
         .geo-fields-container { display: flex !important; flex-wrap: nowrap !important; width: auto !important; }
         .geo-loc-wrapper, .geo-date-wrapper { grid-column: auto !important; width: auto !important; flex: none !important; }
-        .geo-input-field  { width: 180px !important; max-width: 180px !important; }
+        .geo-input-field  { width: auto !important; max-width: 280px !important; min-width: 120px !important; flex: 1 !important; }
         .geo-select-field { width: 180px !important; max-width: 180px !important; }
         .geo-label        { min-width: auto !important; }
         .geo-right-group  { text-align: right !important; width: auto !important; }

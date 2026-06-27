@@ -50,12 +50,12 @@
     </div>
 
     {{/* SVG */}}
-    <div class="telemetry-container py-2 font-mono relative overflow-x-auto select-none w-full"
-         style="-webkit-overflow-scrolling: touch;">
+    {{/* SVG */}}
+    <div class="telemetry-container py-2 font-mono relative select-none w-full">
         <svg id="telemetry-svg-{{ $id }}"
-             viewBox="0 0 900 410"
-             class="responsive-svg w-full h-auto block"
-             xmlns="http://www.w3.org/2000/svg">
+            viewBox="0 0 900 410"
+            class="responsive-svg w-full h-auto block"
+            xmlns="http://www.w3.org/2000/svg">
 
             {{/* ── Grid lines ── */}}
             {{ range seq 40 40 360 }}
@@ -107,7 +107,7 @@
             {{ range $series }}
             <path id="{{ . }}-{{ $id }}-path"
                   fill="none" stroke="currentColor"
-                  class="color-{{ . }}" stroke-width="1.5" />
+                  class="color-{{ . }}" stroke-width="1.8" />
             <g id="{{ . }}-{{ $id }}-dots"></g>
             {{ end }}
 

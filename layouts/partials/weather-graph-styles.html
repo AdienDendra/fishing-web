@@ -6,8 +6,11 @@
 */}}
 <style>
     /* ── Graph container ─────────────────────────────────────────── */
-    .telemetry-container { background-color: transparent !important; }
-
+    .telemetry-container {
+        background-color: transparent !important;
+        overflow: visible !important;
+    }
+    
     /* ── Grid lines ──────────────────────────────────────────────── */
     .chart-grid-line { stroke: #e5e7eb; }
     .dark .chart-grid-line { stroke: #ffffff13; }
@@ -52,7 +55,7 @@
         transition: r 0.12s ease;
         cursor: pointer;
     }
-    .graph-dot:hover { r: 4.5px; }
+    .graph-dot:hover { r: 8px; }
 
     /* ── Tooltip ─────────────────────────────────────────────────── */
     .custom-graph-tooltip {
@@ -91,8 +94,8 @@
     /* ── Mobile: fixed SVG width to enable horizontal scroll ─────── */
     @media (max-width: 767px) {
         .responsive-svg {
-            width: 900px !important;
-            min-width: 900px !important;
+            width: 750px !important;
+            min-width: 750px !important;
             max-width: none !important;
             height: auto !important;
         }

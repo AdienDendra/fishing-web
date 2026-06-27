@@ -18,8 +18,8 @@
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full items-start">
 
     {{/* ── Height graph ── */}}
-    <div class="w-full bg-transparent">
-        {{ partial "weather-graph-blueprint.html" (dict
+    <div class="graph-scroll">
+           {{ partial "weather-graph-blueprint.html" (dict
             "id"           "height"
             "title"        "WAVE SWELL AND TIDE HEIGHT GRAPH"
             "y_unit"       "Height(m)"
@@ -33,7 +33,7 @@
     </div>
 
     {{/* ── Period graph ── */}}
-    <div class="w-full bg-transparent">
+    <div class="graph-scroll">
         {{ partial "weather-graph-blueprint.html" (dict
             "id"           "period"
             "title"        "WAVE AND SWELL PERIOD GRAPH"
