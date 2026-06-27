@@ -122,7 +122,7 @@
     window.selectFishingSpot = function(name, lat, lng) {
         var input = document.getElementById('location-input');
         if (input) {
-            input.value = name;
+            input.textContent = name;  // ganti value → textContent
             input.dataset.lat = lat;  // simpan ke data attribute
             input.dataset.lng = lng;
         }

@@ -395,15 +395,6 @@
         const locInput = el('location-input');
 
         if (btn) btn.addEventListener('click', fetchWeather);
-
-        // Clear koordinat pin kalau user ketik manual
-        if (locInput) {
-            locInput.addEventListener('input', function() {
-                delete this.dataset.lat;
-                delete this.dataset.lng;
-            });
-        }
-
         fetchWeather();
     }
     
