@@ -106,7 +106,7 @@ def main():
             lga  = title_case(row["LGA"])
 
             # Format: "Maroubra Bay, Randwick."
-            display_name = f"{name}, {lga}." if lga else f"{name}."
+            display_name = f"{name}, {lga}" if lga else f"{name}"
             display_name = display_name.replace("'", "\\'")
 
             f.write(

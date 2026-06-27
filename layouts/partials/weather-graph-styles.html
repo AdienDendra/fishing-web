@@ -11,6 +11,11 @@
         overflow: visible !important;
     }
 
+    /* Jarak antar graph */
+    .weather-graph-grid {
+        row-gap: 32px !important;
+    }
+
     /* Wrapper graph dari weather-page.html */
     .graph-scroll {
         width: 100%;
@@ -21,10 +26,17 @@
 
     /* Mobile only: horizontal slider */
     @media (max-width: 767px) {
+        /* Mobile: kasih jarak ekstra antara scrollbar graph dan title graph berikutnya */
+        .weather-graph-grid {
+        row-gap: 42px !important;
+        }
         .graph-scroll {
             overflow-x: auto !important;
             overflow-y: hidden !important;
             -webkit-overflow-scrolling: touch !important;
+            
+            /* jarak legend ke scrollbar */
+            padding-bottom: 14px !important;
         }
 
         .responsive-svg {
