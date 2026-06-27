@@ -39,22 +39,38 @@
     function setText(id, val) { const e = el(id); if (e) e.textContent = val; }
 
     function resolveLocation(input) {
-        const key = (input || '').trim().toLowerCase();
+        const inputEl = document.getElementById('location-input');
 
-        // Lookup dari window.SPOTS (spots.js)
+        // Prioritas 1: kalau ada koordinat langsung dari pin map, pakai itu
+        if (inputEl && inputEl.dataset.lat && inputEl.dataset.lng) {
+            const lat  = parseFloat(inputEl.dataset.lat);
+            const lon  = parseFloat(inputEl.dataset.lng);
+            const name = inputEl.value || `${lat},${lon}`;
+            return { lat, lon, name };
+        }
+
+        // Prioritas 2: text search di window.SPOTS
+        const key   = (input || '').trim().toLowerCase();
         const spots = window.SPOTS || [];
+
         const exact = spots.find(s => s.name.toLowerCase() === key);
         if (exact) return { lat: exact.lat, lon: exact.lng, name: exact.name };
-        const partial = spots.find(s => s.name.toLowerCase().includes(key) || key.includes(s.name.toLowerCase().split(' ')[0]));
+
+        const partial = spots.find(s =>
+            s.name.toLowerCase().includes(key) ||
+            key.includes(s.name.toLowerCase().split(' ')[0])
+        );
         if (partial) return { lat: partial.lat, lon: partial.lng, name: partial.name };
 
-        // Fallback ke LOCATIONS hardcoded
+        // Prioritas 3: LOCATIONS hardcoded
         if (LOCATIONS[key]) return { ...LOCATIONS[key], name: titleCase(key) };
         for (const [name, coords] of Object.entries(LOCATIONS)) {
             if (key && (name.includes(key) || key.includes(name.split(' ')[0]))) {
                 return { ...coords, name: titleCase(name) };
             }
         }
+
+        // Fallback: Botany Bay
         return { ...LOCATIONS['botany bay'], name: 'Botany Bay' };
     }
 
@@ -374,17 +390,20 @@
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────────
-
     function init() {
-        const btn = el('weather-check-btn');
+        const btn      = el('weather-check-btn');
+        const locInput = el('location-input');
+
         if (btn) btn.addEventListener('click', fetchWeather);
+
+        // Clear koordinat pin kalau user ketik manual
+        if (locInput) {
+            locInput.addEventListener('input', function() {
+                delete this.dataset.lat;
+                delete this.dataset.lng;
+            });
+        }
+
         fetchWeather();
     }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
-
 })();
