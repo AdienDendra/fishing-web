@@ -15,18 +15,6 @@
     const API_BASE = 'https://api.fishing.adiendendra.com/weather';
     const SVG_NS   = 'http://www.w3.org/2000/svg';
 
-    // Known Sydney rock fishing locations
-    const LOCATIONS = {
-        'botany bay':     { lat: -33.9929, lon: 151.2172 },
-        'bondi beach':    { lat: -33.8908, lon: 151.2743 },
-        'coogee beach':   { lat: -33.9209, lon: 151.2585 },
-        'cronulla':       { lat: -34.0574, lon: 151.1519 },
-        'dee why':        { lat: -33.7510, lon: 151.2946 },
-        'long reef':      { lat: -33.7397, lon: 151.3015 },
-        'port hacking':   { lat: -34.0653, lon: 151.1480 },
-        'sydney harbour': { lat: -33.8568, lon: 151.2153 },
-    };
-
     // SVG coordinate constants (matches viewBox="0 0 900 410")
     const SVG_X_START = 80;
     const SVG_X_END   = 820;
@@ -38,44 +26,17 @@
     function el(id) { return document.getElementById(id); }
     function setText(id, val) { const e = el(id); if (e) e.textContent = val; }
 
-    function resolveLocation(input) {
+    function resolveLocation() {
         const inputEl = document.getElementById('location-input');
-
-        // Prioritas 1: kalau ada koordinat langsung dari pin map, pakai itu
         if (inputEl && inputEl.dataset.lat && inputEl.dataset.lng) {
-            const lat  = parseFloat(inputEl.dataset.lat);
-            const lon  = parseFloat(inputEl.dataset.lng);
-            const name = inputEl.value || `${lat},${lon}`;
-            return { lat, lon, name };
+            return {
+                lat:  parseFloat(inputEl.dataset.lat),
+                lon:  parseFloat(inputEl.dataset.lng),
+                name: inputEl.textContent.trim()
+            };
         }
-
-        // Prioritas 2: text search di window.SPOTS
-        const key   = (input || '').trim().toLowerCase();
-        const spots = window.SPOTS || [];
-
-        const exact = spots.find(s => s.name.toLowerCase() === key);
-        if (exact) return { lat: exact.lat, lon: exact.lng, name: exact.name };
-
-        const partial = spots.find(s =>
-            s.name.toLowerCase().includes(key) ||
-            key.includes(s.name.toLowerCase().split(' ')[0])
-        );
-        if (partial) return { lat: partial.lat, lon: partial.lng, name: partial.name };
-
-        // Prioritas 3: LOCATIONS hardcoded
-        if (LOCATIONS[key]) return { ...LOCATIONS[key], name: titleCase(key) };
-        for (const [name, coords] of Object.entries(LOCATIONS)) {
-            if (key && (name.includes(key) || key.includes(name.split(' ')[0]))) {
-                return { ...coords, name: titleCase(name) };
-            }
-        }
-
-        // Fallback: Botany Bay
-        return { ...LOCATIONS['botany bay'], name: 'Botany Bay' };
-    }
-
-    function titleCase(str) {
-        return str.split(' ').map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+        // Fallback default
+        return { lat: -34.0049, lon: 151.2288, name: 'The Leap, Kurnell' };
     }
 
     // ─── SVG math ─────────────────────────────────────────────────────────────
@@ -295,10 +256,8 @@
         if (data.ss) setText('sunset-value',         data.ss);
         if (data.major) {
             const clean = data.major
-                .replace(/[\u{1F40F}\u{1F41F}]+\s*/gu, '')
-                .replace(/\*?Major:\*?\s*/i, '')
-                .split('&')[0].trim();
-            setText('fish-activity-value', `Major (${clean})`);
+                .trim();
+            setText('fish-activity-value', clean);
         }
         if (data.fetched_at) {
             const d   = new Date(data.fetched_at);
@@ -417,7 +376,7 @@
         const dateSelect = el('date-select');
         if (!locInput || !dateSelect) return;
 
-        const loc     = resolveLocation(locInput.value);
+        const loc     = resolveLocation();
         const dateStr = dateSelect.value;
         if (!dateStr) return;
 
