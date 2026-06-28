@@ -60,6 +60,70 @@
             height: auto !important;
         }
     }
+    /* Fish activity readability */
+
+    #fish-activity-value {
+        font-weight: 600 !important;
+        color: #334155 !important;
+    }
+
+    .dark #fish-activity-value {
+        color: #e2e8f0 !important;
+    }
+
+    /* ── Data updated readability ─────────────────────────────── */
+    #data-updated-time {
+        font-weight: 700 !important;
+        color: #334155 !important;
+    }
+
+    .dark #data-updated-time {
+        color: #cbd5e1 !important;
+    }    
+
+    /* ── Safety status block ───────────────────────────────────── */
+    .safety-status-block {
+        text-align: center !important;
+    }
+
+    .safety-status-title {
+        font-size: 15px !important;
+        line-height: 1.35 !important;
+        font-weight: 700 !important;
+        color: var(--safety-color, #10b981) !important;
+        text-transform: uppercase !important;
+    }
+
+    .safety-status-detail {
+        margin-top: 4px !important;
+        font-size: 14px !important;
+        line-height: 1.45 !important;
+        font-weight: 400 !important;
+        color: #64748b !important;
+    }
+
+    .dark .safety-status-detail {
+        color: #93a4b8 !important;
+    }
+
+    .safety-status-detail strong {
+        font-weight: 600 !important;
+        color: #1f2937 !important;
+    }
+
+    .dark .safety-status-detail strong {
+        color: #e2e8f0 !important;
+    }
+
+    @media (max-width: 767px) {
+        .safety-status-title {
+            font-size: 14px !important;
+        }
+
+        .safety-status-detail {
+            font-size: 13px !important;
+        }
+    }    
 
     /* ── Grid lines ──────────────────────────────────────────────── */
     .chart-grid-line { stroke: #e5e7eb; }
@@ -152,7 +216,7 @@
     }
 
     .dark .ai-analysis-panel {
-        color: #cbd5e1 !important; /* dark: slate-300 */
+        color: #e2e8f0  !important; /* dark: slate-300 */
     }
 
     .ai-analysis-panel * {
@@ -185,7 +249,7 @@
     }
 
     .dark .ai-analysis-panel strong {
-        color: #f8fafc !important; /* dark */
+        color: #e2e8f0 !important; /* dark */
     }
 
     .ai-analysis-panel ul {

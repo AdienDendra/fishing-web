@@ -21,11 +21,27 @@
     const SVG_Y_TOP   = 40;
     const SVG_Y_BOT   = 360;
 
+    let lastWeatherData = null;
+    let lastLocationName = '';
+    let lastSelectedDate = '';
+    let lastSelectedDateLabel = '';
+    let lastAssessmentHour = null;    
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     function el(id) { return document.getElementById(id); }
+
     function setText(id, val) { const e = el(id); if (e) e.textContent = val; }
 
+    function escapeHTML(str) {
+        return String(str ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
     function resolveLocation() {
         const inputEl = document.getElementById('location-input');
         if (inputEl && inputEl.dataset.lat && inputEl.dataset.lng) {
@@ -208,63 +224,279 @@
     }
 
     // ─── Safety evaluation ────────────────────────────────────────────────────
-
-    function evaluateSafety(data) {
-        const safe   = arr => (arr || []).filter(v => v != null);
-        const maxVal = arr => safe(arr).length ? Math.max(...safe(arr)) : 0;
-
-        const maxWave   = maxVal(data.marine?.wave_height);
-        const maxSwell  = maxVal(data.marine?.swell_wave_height);
-        const maxPeriod = maxVal(data.marine?.swell_wave_period);
-        const maxWind   = maxVal(data.weather?.wind_speed_10m);
-
-        if (maxWave >= 3.0 || maxSwell >= 2.5 || maxPeriod >= 16 || maxWind >= 50)
-            return { status: 'DANGEROUS',          note: 'Do NOT fish — extreme conditions', color: 'red'    };
-        if (maxWave >= 2.0 || maxSwell >= 2.0 || maxPeriod >= 12 || maxWind >= 35)
-            return { status: 'HIGH RISK',           note: 'Experienced anglers only',         color: 'orange' };
-        if (maxWave >= 1.5 || maxSwell >= 1.5 || maxWind >= 25)
-            return { status: 'CONDITIONALLY SAFE', note: 'Watch for choppy swells',           color: 'yellow' };
-        return         { status: 'SAFE',            note: 'Good conditions for fishing',       color: 'green'  };
+    function getAt(arr, hour) {
+        if (!Array.isArray(arr)) return null;
+        const v = Number(arr[hour]);
+        return Number.isFinite(v) ? v : null;
     }
 
-    // ─── Status bar ───────────────────────────────────────────────────────────
+    function maxNullable(...values) {
+        const valid = values.filter(v => Number.isFinite(v));
+        return valid.length ? Math.max(...valid) : null;
+    }
 
-    function updateStatusBar(data) {
-        const safety = evaluateSafety(data);
+    function scoreFromStops(value, stops) {
+        if (!Number.isFinite(value)) return null;
 
-        setText('safety-status-strong', safety.status);
-        setText('safety-status-note',   `(${safety.note})`);
+        if (value <= stops[0].v) return stops[0].s;
 
-        const colorMap = { red: '#ef4444', orange: '#f97316', yellow: '#eab308', green: '#10b981' };
+        for (let i = 1; i < stops.length; i++) {
+            const prev = stops[i - 1];
+            const next = stops[i];
+
+            if (value <= next.v) {
+                const ratio = (value - prev.v) / (next.v - prev.v || 1);
+                return prev.s + ratio * (next.s - prev.s);
+            }
+        }
+
+        return stops[stops.length - 1].s;
+    }
+
+    function scoreFromWavePower(wavePowerProxy) {
+        return scoreFromStops(wavePowerProxy, [
+            { v: 0,  s: 0  },
+            { v: 4,  s: 25 },
+            { v: 12, s: 45 },
+            { v: 25, s: 65 },
+            { v: 50, s: 85 },
+            { v: 80, s: 100 }
+        ]);
+    }
+
+    function scoreFromSeaHeightOnly(seaHeight) {
+        return scoreFromStops(seaHeight, [
+            { v: 0,   s: 0  },
+            { v: 0.8, s: 25 },
+            { v: 1.3, s: 45 },
+            { v: 1.8, s: 65 },
+            { v: 2.5, s: 85 },
+            { v: 3.5, s: 100 }
+        ]);
+    }
+
+    function scoreFromWind(wind) {
+        return scoreFromStops(wind, [
+            { v: 0,  s: 0  },
+            { v: 10, s: 25 },
+            { v: 20, s: 45 },
+            { v: 30, s: 65 },
+            { v: 38, s: 85 },
+            { v: 50, s: 100 }
+        ]);
+    }
+
+    function statusFromScore(score) {
+        if (score >= 85) {
+            return {
+                status: 'EXTREME',
+                note: 'No-go conditions',
+                color: 'darkred'
+            };
+        }
+
+        if (score >= 65) {
+            return {
+                status: 'DANGEROUS',
+                note: 'Do NOT fish',
+                color: 'red'
+            };
+        }
+
+        if (score >= 45) {
+            return {
+                status: 'HIGH RISK',
+                note: 'Strong caution required',
+                color: 'orange'
+            };
+        }
+
+        if (score >= 25) {
+            return {
+                status: 'CONDITIONALLY SAFE',
+                note: 'Use caution',
+                color: 'yellow'
+            };
+        }
+
+        return {
+            status: 'SAFE',
+            note: 'Low-risk conditions',
+            color: 'green'
+        };
+    }
+
+    function getAssessmentWindow() {
+        const now = new Date();
+        const startHour = Math.max(0, Math.min(23, now.getHours()));
+        const endHour = Math.min(startHour + 1, 24);
+
+        return { startHour, endHour };
+    }
+
+    function formatHourLabel(hour) {
+        return String(hour).padStart(2, '0') + ':00';
+    }
+
+    function formatSelectedDateLabel(dateSelect) {
+        if (!dateSelect) return '';
+
+        const opt = dateSelect.options[dateSelect.selectedIndex];
+        const raw = (opt?.textContent || dateSelect.value || '').trim();
+
+        return raw
+            .replace(/^Today\s*\((.+)\)$/i, '$1')
+            .replace(/^Tomorrow\s*\((.+)\)$/i, '$1');
+    }
+
+    function formatMetric(value, digits, suffix) {
+        return Number.isFinite(value)
+            ? `${value.toFixed(digits)}${suffix}`
+            : `—${suffix}`;
+    }
+
+    function evaluateSafetyForHour(data, hour) {
+        const wave        = getAt(data.marine?.wave_height, hour);
+        const swell       = getAt(data.marine?.swell_wave_height, hour);
+        const wavePeriod  = getAt(data.marine?.wave_period, hour);
+        const swellPeriod = getAt(data.marine?.swell_wave_period, hour);
+        const wind        = getAt(data.weather?.wind_speed_10m, hour);
+
+        const seaHeight = maxNullable(wave, swell);
+        const period    = maxNullable(wavePeriod, swellPeriod);
+
+        let wavePowerProxy = null;
+        let waveRiskScore  = null;
+
+        if (seaHeight !== null && period !== null) {
+            wavePowerProxy = seaHeight * seaHeight * period;
+            waveRiskScore = scoreFromWavePower(wavePowerProxy);
+        } else if (seaHeight !== null) {
+            waveRiskScore = scoreFromSeaHeightOnly(seaHeight);
+        }
+
+        const windRiskScore = wind !== null ? scoreFromWind(wind) : null;
+
+        const scores = [waveRiskScore, windRiskScore]
+            .filter(v => Number.isFinite(v));
+
+        if (!scores.length) {
+            return {
+                status: 'UNKNOWN',
+                note: 'Insufficient marine/weather data — do not assume safe',
+                color: 'grey',
+                score: null,
+                seaHeight,
+                period,
+                wind,
+                wavePowerProxy
+            };
+        }
+
+        const finalScore = Math.max(...scores);
+        const status = statusFromScore(finalScore);
+
+        return {
+            ...status,
+            score: finalScore,
+            seaHeight,
+            period,
+            wind,
+            wavePowerProxy
+        };
+    }
+
+    function evaluateSafetyForAssessment(data) {
+        const { startHour, endHour } = getAssessmentWindow();
+
+        const result = evaluateSafetyForHour(data, startHour);
+
+        return {
+            ...result,
+            startHour,
+            endHour,
+            windowLabel: `${formatHourLabel(startHour)}–${formatHourLabel(endHour)}`
+        };
+    }
+
+    function applySafetyColor(color) {
+        const colorMap = {
+            darkred: '#7f1d1d',
+            red: '#ef4444',
+            orange: '#f97316',
+            yellow: '#eab308',
+            green: '#10b981',
+            grey: '#94a3b8'
+        };
+
+        const resolvedColor = colorMap[color] || colorMap.grey;
+
         document.querySelectorAll('.status-indicator-dot').forEach(d => {
-            d.style.backgroundColor = colorMap[safety.color];
+            d.style.backgroundColor = resolvedColor;
         });
 
         const statusP = el('safety-status-p');
-        if (statusP) {
-            statusP.className = 'text-base leading-relaxed';
-            const textMap = {
-                red:    'text-red-600 dark:text-red-400',
-                orange: 'text-orange-500 dark:text-orange-400',
-                yellow: 'text-yellow-600 dark:text-yellow-400',
-                green:  'status-text-green',
-            };
-            statusP.classList.add(...textMap[safety.color].split(' '));
-        }
+        if (!statusP) return;
 
-        if (data.sr) setText('sunrise-value',       data.sr);
-        if (data.ss) setText('sunset-value',         data.ss);
+        statusP.className = 'text-base leading-relaxed safety-status-block';
+        statusP.style.setProperty('--safety-color', resolvedColor);
+    }
+
+    function updateStatusBarFromAssessment() {
+        if (!lastWeatherData) return;
+
+        const safety = evaluateSafetyForAssessment(lastWeatherData);
+        lastAssessmentHour = safety.startHour;
+
+        const statusP = el('safety-status-p');
+        if (!statusP) return;
+
+        const location = escapeHTML(lastLocationName);
+        const dateLabel = escapeHTML(lastSelectedDateLabel);
+        const windowLabel = escapeHTML(safety.windowLabel);
+
+        const seaValue = escapeHTML(formatMetric(safety.seaHeight, 1, 'm'));
+        const periodValue = escapeHTML(formatMetric(safety.period, 0, 's'));
+        const windValue = escapeHTML(formatMetric(safety.wind, 0, 'km/h'));
+
+        statusP.innerHTML = `
+            <div class="safety-status-title">
+                SAFETY STATUS: <span id="safety-status-strong">${escapeHTML(safety.status)}</span>
+            </div>
+            <div id="safety-status-note" class="safety-status-detail">
+                (<strong>${location}</strong> · ${dateLabel} · ${windowLabel} ·
+                Sea <strong>${seaValue}</strong> ·
+                Period <strong>${periodValue}</strong> ·
+                Wind <strong>${windValue}</strong>)
+            </div>
+        `;
+
+        applySafetyColor(safety.color);
+    }
+
+    // ─── Status bar ───────────────────────────────────────────────────────────
+    function updateStatusBar(data) {
+        updateStatusBarFromAssessment();
+
+        if (data.sr) setText('sunrise-value', data.sr);
+        if (data.ss) setText('sunset-value', data.ss);
+
         if (data.major) {
-            const clean = data.major
-                .trim();
+            const clean = data.major.trim();
             setText('fish-activity-value', clean);
         }
+
         if (data.fetched_at) {
-            const d   = new Date(data.fetched_at);
+            const d = new Date(data.fetched_at);
             const fmt = d.toLocaleString('en-AU', {
-                weekday: 'short', day: 'numeric', month: 'short',
-                hour: '2-digit', minute: '2-digit', timeZone: 'Australia/Sydney'
+                weekday: 'short',
+                day: 'numeric',
+                month: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'Australia/Sydney'
             });
+
             setText('data-updated-time', `${fmt} AEST`);
         }
 
@@ -380,6 +612,10 @@
         const dateStr = dateSelect.value;
         if (!dateStr) return;
 
+        lastLocationName = loc.name;
+        lastSelectedDate = dateStr;
+        lastSelectedDateLabel = formatSelectedDateLabel(dateSelect);
+
         setLoading(true);
 
         const url = `${API_BASE}?lat=${loc.lat}&lon=${loc.lon}&date=${dateStr}&name=${encodeURIComponent(loc.name)}`;
@@ -388,6 +624,9 @@
             const res  = await fetch(url);
             if (!res.ok) throw new Error(`API error ${res.status}`);
             const data = await res.json();
+
+            lastWeatherData = data;
+            lastAssessmentHour = null;
 
             updateStatusBar(data);
             renderHeightGraph(data);
@@ -413,6 +652,16 @@
         if (btn) btn.addEventListener('click', fetchWeather);
         fetchWeather();
     }
+
+    setInterval(() => {
+        if (!lastWeatherData) return;
+
+        const { startHour } = getAssessmentWindow();
+
+        if (startHour !== lastAssessmentHour) {
+            updateStatusBarFromAssessment();
+        }
+    }, 60 * 1000);
     
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
