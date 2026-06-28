@@ -26,16 +26,20 @@
 
     /* Mobile only: horizontal slider */
     @media (max-width: 767px) {
-        /* Mobile: kasih jarak ekstra antara scrollbar graph dan title graph berikutnya */
         .weather-graph-grid {
-        row-gap: 42px !important;
+            row-gap: 42px !important;
         }
+
+        /* graph-scroll tidak scroll — biarkan title dan legend tetap centered */
         .graph-scroll {
+            overflow: visible !important;
+        }
+
+        /* Scroll hanya pada SVG container */
+        .telemetry-container {
             overflow-x: auto !important;
             overflow-y: hidden !important;
             -webkit-overflow-scrolling: touch !important;
-            
-            /* jarak legend ke scrollbar */
             padding-bottom: 14px !important;
         }
 
