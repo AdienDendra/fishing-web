@@ -60,26 +60,56 @@
             height: auto !important;
         }
     }
-    /* Fish activity readability */
 
-    #fish-activity-value {
-        font-weight: 600 !important;
-        color: #334155 !important;
+    /* ── Fish activity list ───────────────────────────────────── */
+    .fish-activity-list {
+        display: inline-flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+        text-align: left !important;
+        vertical-align: top !important;
     }
 
-    .dark #fish-activity-value {
+    .fish-activity-row {
+        display: flex !important;
+        gap: 6px !important;
+        align-items: baseline !important;
+        font-size: 14px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fish-activity-label {
+        font-weight: 600 !important;
+        color: #334155 !important;
+        min-width: 42px !important;
+    }
+
+    .dark .fish-activity-label {
         color: #e2e8f0 !important;
     }
 
-    /* ── Data updated readability ─────────────────────────────── */
-    #data-updated-time {
-        font-weight: 700 !important;
-        color: #334155 !important;
+    .fish-activity-text {
+        font-weight: 500 !important;
+        color: #475569 !important;
     }
 
-    .dark #data-updated-time {
+    .dark .fish-activity-text {
         color: #cbd5e1 !important;
-    }    
+    }
+
+    .fish-activity-low .fish-activity-text {
+        opacity: 0.82 !important;
+    }
+
+    @media (max-width: 767px) {
+        .fish-activity-row {
+            font-size: 13px !important;
+        }
+
+        .fish-activity-label {
+            min-width: 38px !important;
+        }
+    }
 
     /* ── Safety status block ───────────────────────────────────── */
     .safety-status-block {
@@ -181,7 +211,7 @@
         background-color: color-mix(in srgb, var(--entry, #ffffff) 92%, transparent) !important;
         border: 1.5px solid var(--border, #e5e7eb) !important;
         border-radius: 6px !important;
-        padding: 6px 10px !important;
+        padding: 4px 6px !important;
         font-family: inherit !important;
         font-size: 11px !important;
         z-index: 50 !important;
@@ -206,7 +236,41 @@
         font-weight: bold;
         color: var(--primary, #111827) !important;
     }
-    
+    .tt-head {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: baseline !important;
+        gap: 4px !important;
+        margin-bottom: 3px !important;
+        white-space: nowrap !important;
+    }
+
+    .tt-label {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+    }
+
+    .tt-sep,
+    .tt-time {
+        font-size: 12px !important;
+        line-height: 1.2 !important;
+        font-weight: 600 !important;
+        color: #94a3b8 !important;
+    }
+
+    .dark .tt-sep,
+    .dark .tt-time {
+        color: #94a3b8 !important;
+    }
+
+    .tt-value {
+        font-size: 16px !important;
+        line-height: 1.1 !important;
+        font-weight: 700 !important;
+        text-align: center !important;
+    }
     /* ── AI Fishing Analysis ─────────────────────────────────────── */
     .ai-analysis-panel {
         font-size: 14px !important;

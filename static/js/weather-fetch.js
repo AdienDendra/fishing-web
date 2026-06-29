@@ -194,9 +194,14 @@
             if (dot.classList.contains('color-swell')) seriesName = 'swell';
 
             const labels = { wave: 'Wave', swell: 'Swell', tide: 'Tide' };
-            return `<div class="tt-title color-${seriesName}">${labels[seriesName]} (${timeStr})</div>
-                    <div class="tt-row">height: <span class="tt-num">${height}m</span></div>`;
-        });
+            return `<div class="tt-head">
+                        <span class="tt-label color-${seriesName}">${labels[seriesName]} Height</span>
+                        <span class="tt-sep">·</span>
+                        <span class="tt-time">${timeStr}</span>
+                    </div>
+                    <div class="tt-value color-${seriesName}">${height}m</div>`;
+
+       });
     }
 
     // ─── Period graph (wave, swell) ───────────────────────────────────────────
@@ -481,9 +486,39 @@
         if (data.sr) setText('sunrise-value', data.sr);
         if (data.ss) setText('sunset-value', data.ss);
 
-        if (data.major) {
-            const clean = data.major.trim();
-            setText('fish-activity-value', clean);
+        if (data.major || data.minor || data.low || data.Low) {
+            const major = data.major || '';
+            const minor = data.minor || '';
+            const low = data.low || data.Low || '';
+
+            const fishActivityEl = el('fish-activity-value');
+
+            if (fishActivityEl) {
+                fishActivityEl.innerHTML = `
+                    <div class="fish-activity-list">
+                        ${major ? `
+                            <div class="fish-activity-row">
+                                <span class="fish-activity-label">Major:</span>
+                                <span class="fish-activity-text">${escapeHTML(major)}</span>
+                            </div>
+                        ` : ''}
+
+                        ${minor ? `
+                            <div class="fish-activity-row">
+                                <span class="fish-activity-label">Minor:</span>
+                                <span class="fish-activity-text">${escapeHTML(minor)}</span>
+                            </div>
+                        ` : ''}
+
+                        ${low ? `
+                            <div class="fish-activity-row fish-activity-low">
+                                <span class="fish-activity-label">Low:</span>
+                                <span class="fish-activity-text">${escapeHTML(low)}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
         }
 
         if (data.fetched_at) {
