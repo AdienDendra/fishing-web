@@ -43,9 +43,6 @@
 <script>
     
 (function () {
-
-    console.log(window.SPOTS);
-
     var modal     = document.getElementById('geo-map-modal-container');
     var openBtn   = document.getElementById('geo-map-trigger');
     var closeBtn  = document.getElementById('geo-modal-close-x');
@@ -114,6 +111,19 @@
     }
 
     function initLeafletMap() {
+
+        if (mapEngine && leafletRef) {
+            buildMap(leafletRef);
+            return;
+        }
+
+        if (leafletLoading || leafletLoaded) return;
+        leafletLoading = true;  
+
+        var leafletLoaded = false;
+        var leafletLoading = false;
+        var leafletRef = null;
+        
         // Simpan window.L yang mungkin sudah di-overwrite theme
         var savedL = window.L;
 
@@ -125,11 +135,13 @@
         var js = document.createElement('script');
         js.src = 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js';
         js.onload = function() {
-            // Ambil Leaflet dari window.L setelah load, simpan ke var lokal
+            leafletLoading = false;
+            leafletLoaded = true;
+
             var _Leaflet = window.L;
-            // Restore window.L ke nilai semula (milik theme)
+            leafletRef = _Leaflet;
+
             window.L = savedL;
-            // Pakai _Leaflet lokal untuk build map
             buildMap(_Leaflet);
         };
         js.onerror = function() { console.error('[map-modal] Failed to load Leaflet from CDN'); };
