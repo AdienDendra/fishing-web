@@ -171,13 +171,50 @@
         });
     }
 
+    function extractTideHeightSeries(tideData) {
+        // Legacy support: old backend returned a plain 24-hour array.
+        if (Array.isArray(tideData)) {
+            return tideData
+                .slice(0, 24)
+                .map(v => Number.isFinite(Number(v)) ? Number(v) : 0);
+        }
+
+        const series = Array(24).fill(null);
+        const heights = Array.isArray(tideData?.heights) ? tideData.heights : [];
+
+        heights.forEach(item => {
+            const time = String(item?.time || '');
+            const hour = Number(time.slice(11, 13));
+
+            // Prefer display_height because backend calibrated it for angler-facing display.
+            const rawValue =
+                item?.display_height ??
+                item?.height_msl ??
+                item?.height;
+
+            const value = Number(rawValue);
+
+            if (
+                Number.isInteger(hour) &&
+                hour >= 0 &&
+                hour < 24 &&
+                Number.isFinite(value)
+            ) {
+                series[hour] = value;
+            }
+        });
+
+        return series.map(v => v ?? 0);
+    }
+
+
     // ─── Height graph (wave, swell, tide) ─────────────────────────────────────
 
     function renderHeightGraph(data) {
         const wave  = data.marine?.wave_height       || Array(24).fill(0);
         const swell = data.marine?.swell_wave_height || Array(24).fill(0);
-        const tide  = (Array.isArray(data.tide) && data.tide.length) ? data.tide : Array(24).fill(0);
-
+        const tide = extractTideHeightSeries(data.tide);
+        
         // Y scale 0–4m
         renderSeries('wave',  'height', wave,  0, 4, 'data-value');
         renderSeries('swell', 'height', swell, 0, 4, 'data-value');
@@ -196,8 +233,6 @@
             const labels = { wave: 'Wave', swell: 'Swell', tide: 'Tide' };
             return `<div class="tt-head">
                         <span class="tt-label color-${seriesName}">${labels[seriesName]} Height</span>
-                        <span class="tt-sep">·</span>
-                        <span class="tt-time">${timeStr}</span>
                     </div>
                     <div class="tt-value color-${seriesName}">${height}m</div>`;
 
@@ -223,8 +258,10 @@
             if (dot.classList.contains('color-wave')) seriesName = 'wave';
 
             const labels = { wave: 'Wave', swell: 'Swell' };
-            return `<div class="tt-title color-${seriesName}">${labels[seriesName]} (${timeStr})</div>
-                    <div class="tt-row">period: <span class="tt-num">${period}s</span></div>`;
+            return `<div class="tt-head">
+                        <span class="tt-label color-${seriesName}">${labels[seriesName]} Period</span>
+                    </div>
+                    <div class="tt-value color-${seriesName}">${period}s</div>`;
         });
     }
 
