@@ -83,24 +83,28 @@
 
 <script>
 (function() {
-    function isSelectedDateToday() {
-        const dateSelect = document.getElementById('date-select');
-        if (!dateSelect) return true;
-
+    function getTodayStr() {
         const today = new Date();
-        const todayStr =
-            today.getFullYear() + '-' +
+
+        return today.getFullYear() + '-' +
             String(today.getMonth() + 1).padStart(2, '0') + '-' +
             String(today.getDate()).padStart(2, '0');
+    }
 
-        return dateSelect.value === todayStr;
-    }   
-    
+    function isLoadedDateToday() {
+        const loadedDate = document.documentElement.dataset.weatherLoadedDate;
+
+        // Kalau belum ada data loaded, default aman: anggap today.
+        if (!loadedDate) return true;
+
+        return loadedDate === getTodayStr();
+    }
+
     // Current time indicator — generic, works for any blueprint SVG
     function updateTimeline() {
         const now = new Date();
         const currentX = 80 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 740;
-        const showTimeline = isSelectedDateToday();
+        const showTimeline = isLoadedDateToday();
         document.querySelectorAll('svg[id^="telemetry-svg-"]').forEach(svg => {
             const idSuffix = svg.id.replace('telemetry-svg-', '');
             const line = document.getElementById('time-line-' + idSuffix);
@@ -125,6 +129,8 @@
             }
         });
     }
+    
+    window.updateAssessmentTimeline = updateTimeline;
     updateTimeline();
     setInterval(updateTimeline, 30000);
 })();

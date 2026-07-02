@@ -1,66 +1,245 @@
 <style>
+    /* ── Status indicator ───────────────────────────────────── */
     .status-indicator-dot { background-color: #10b981; }
     .status-text-green { color: #059669; }
     .dark .status-text-green { color: #34d399; }
-    .live-ping-animation { animation: faultless-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite; }
-    @keyframes faultless-ping { 75%, 100% { transform: scale(2.5); opacity: 0; } }
 
-    /* LAYOUT — Mobile: stacked grid */
-    .geo-header-row { display: flex !important; flex-direction: column !important; gap: 14px !important; width: 100% !important; }
-    .geo-left-group  { display: flex !important; flex-direction: column !important; width: 100% !important; }
+    .live-ping-animation {
+        animation: faultless-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes faultless-ping {
+        75%, 100% {
+            transform: scale(2.5);
+            opacity: 0;
+        }
+    }
+
+    /* ── Header layout: mobile default ───────────────────────── */
+    .geo-header-row {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+        width: 100% !important;
+    }
+
+    .geo-left-group {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+    }
 
     .geo-fields-container {
         display: grid !important;
         grid-template-columns: 1fr auto !important;
+        align-items: center !important;
         gap: 10px !important;
         width: 100% !important;
     }
-    .geo-loc-wrapper  { grid-column: span 2 !important; }
-    .geo-date-wrapper { grid-column: span 1 !important; }
 
-    .geo-input-wrapper { display: flex !important; align-items: center !important; gap: 8px !important; width: 100% !important; }
-    .geo-input-field { width: 100% !important; min-width: 0 !important; flex: 1 !important; }
-    .geo-select-field { width: 100% !important; min-width: 0 !important; }
-    .geo-label { min-width: 70px !important; display: inline-block !important; flex-shrink: 0 !important; }
-    .geo-right-group { text-align: left !important; width: 100% !important; }
-
-    /* LAYOUT — Desktop ≥640px */
-    @media (min-width: 640px) {
-        .geo-header-row  { flex-direction: row !important; justify-content: space-between !important; align-items: center !important; }
-        .geo-left-group  { flex-direction: row !important; align-items: center !important; width: auto !important; }
-        .geo-fields-container { display: flex !important; flex-wrap: nowrap !important; width: auto !important; }
-        .geo-loc-wrapper, .geo-date-wrapper { grid-column: auto !important; width: auto !important; flex: none !important; }
-        .geo-input-field  { width: auto !important; max-width: 280px !important; min-width: 120px !important; flex: 1 !important; }
-        .geo-select-field { width: 180px !important; max-width: 180px !important; }
-        .geo-label        { min-width: auto !important; }
-        .geo-right-group  { text-align: right !important; width: auto !important; }
+    .geo-loc-wrapper {
+        grid-column: span 2 !important;
     }
 
-    /* Check button */
+    .geo-date-wrapper {
+        grid-column: span 1 !important;
+    }
+
+    .geo-input-wrapper {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .geo-location-control-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    .geo-label {
+        min-width: 70px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+        line-height: 1 !important;
+    }
+
+    .geo-right-group {
+        text-align: left !important;
+        width: 100% !important;
+    }
+
+    /* ── Unified control sizing ───────────────────────────────── */
+    .geo-input-field,
+    .geo-select-field,
+    .geo-map-trigger-btn,
     .geo-check-btn {
-        background-color: #2563eb !important; color: #ffffff !important; font-weight: 600 !important;
-        padding: 5px 14px !important; border-radius: 6px !important; border: none !important;
-        cursor: pointer !important; display: inline-flex !important; align-items: center !important;
-        justify-content: center !important; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
-        flex-shrink: 0 !important; transition: background-color 0.1s ease-in-out, transform 0.05s ease !important;
+        height: 40px !important;
+        box-sizing: border-box !important;
     }
-    .geo-check-btn:hover   { background-color: #1d4ed8 !important; }
-    .geo-check-btn:active  { transform: scale(0.93) !important; background-color: #1e40af !important; }
-    .dark .geo-check-btn   { background-color: #3b82f6 !important; }
-    .dark .geo-check-btn:hover  { background-color: #2563eb !important; }
-    .dark .geo-check-btn:active { transform: scale(0.93) !important; background-color: #1d4ed8 !important; }
-    .geo-check-btn:disabled { opacity: 0.6 !important; cursor: not-allowed !important; transform: none !important; }
 
-    /* Map trigger button (📍) */
-    .geo-map-trigger-btn {
-        background-color: #3b82f6 !important; border-radius: 6px !important;
-        padding: 0 10px !important; height: 34px !important; cursor: pointer !important;
-        display: inline-flex !important; align-items: center !important; justify-content: center !important;
-        border: none !important; transition: background-color 0.1s ease !important;
+    .geo-input-field {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 !important;
+
+        display: inline-flex !important;
+        align-items: center !important;
+
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        line-height: 1 !important;
     }
-    .geo-map-trigger-btn:hover      { background-color: #2563eb !important; }
-    .dark .geo-map-trigger-btn      { background-color: #3b82f6 !important; }
-    .dark .geo-map-trigger-btn:hover { background-color: #2563eb !important; }
+
+    .geo-select-field {
+        width: 100% !important;
+        min-width: 0 !important;
+
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        line-height: 1 !important;
+    }
+
+    /* ── Map trigger button ───────────────────────────────────── */
+    .geo-map-trigger-btn {
+        width: 40px !important;
+        min-width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+
+        background-color: #3b82f6 !important;
+        border-radius: 6px !important;
+        border: none !important;
+
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        font-size: 16px !important;
+        line-height: 1 !important;
+
+        flex-shrink: 0 !important;
+        transition: background-color 0.1s ease !important;
+    }
+
+    .geo-map-trigger-btn:hover {
+        background-color: #2563eb !important;
+    }
+
+    .dark .geo-map-trigger-btn {
+        background-color: #3b82f6 !important;
+    }
+
+    .dark .geo-map-trigger-btn:hover {
+        background-color: #2563eb !important;
+    }
+
+    /* ── Check button ─────────────────────────────────────────── */
+    .geo-check-btn {
+        height: 40px !important;
+        padding: 0 16px !important;
+
+        background-color: #2563eb !important;
+        color: #ffffff !important;
+        font-weight: 600 !important;
+        border-radius: 6px !important;
+        border: none !important;
+
+        cursor: pointer !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05) !important;
+        flex-shrink: 0 !important;
+        transition: background-color 0.1s ease-in-out, transform 0.05s ease !important;
+    }
+
+    .geo-check-btn:hover {
+        background-color: #1d4ed8 !important;
+    }
+
+    .geo-check-btn:active {
+        transform: scale(0.93) !important;
+        background-color: #1e40af !important;
+    }
+
+    .dark .geo-check-btn {
+        background-color: #3b82f6 !important;
+    }
+
+    .dark .geo-check-btn:hover {
+        background-color: #2563eb !important;
+    }
+
+    .dark .geo-check-btn:active {
+        transform: scale(0.93) !important;
+        background-color: #1d4ed8 !important;
+    }
+
+    .geo-check-btn:disabled {
+        opacity: 0.6 !important;
+        cursor: not-allowed !important;
+        transform: none !important;
+    }
+
+    /* ── Desktop ≥640px ───────────────────────────────────────── */
+    @media (min-width: 640px) {
+        .geo-header-row {
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+
+        .geo-left-group {
+            flex-direction: row !important;
+            align-items: center !important;
+            width: auto !important;
+        }
+
+        .geo-fields-container {
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            width: auto !important;
+        }
+
+        .geo-loc-wrapper,
+        .geo-date-wrapper {
+            grid-column: auto !important;
+            width: auto !important;
+            flex: none !important;
+        }
+
+        .geo-location-control-row {
+            width: auto !important;
+        }
+
+        .geo-input-field {
+            width: auto !important;
+            max-width: 280px !important;
+            min-width: 120px !important;
+            flex: 1 !important;
+        }
+
+        .geo-select-field {
+            width: 220px !important;
+            max-width: 220px !important;
+        }
+
+        .geo-label {
+            min-width: auto !important;
+        }
+
+        .geo-right-group {
+            text-align: right !important;
+            width: auto !important;
+        }
+    }
 </style>
 
 <div class="w-full space-y-4">
@@ -80,13 +259,15 @@
                 <!-- Location input + map trigger -->
                 <div class="geo-input-wrapper geo-loc-wrapper">
                     <label for="location-input" class="geo-label font-medium text-neutral-800 dark:text-neutral-200 text-sm sm:text-base">Location:</label>
-                    <div style="display:flex !important; width:100% !important; gap:6px !important;">
+
+                    <div class="geo-location-control-row">
                         <span
                             id="location-input"
                             class="geo-input-field bg-transparent border border-neutral-300 dark:border-neutral-700 rounded-md px-3 py-1 text-sm sm:text-base text-neutral-800 dark:text-neutral-100 font-mono"
                             data-lat="-34.0049"
                             data-lng="151.2288"
                         >The Leap, Kurnell</span>
+
                         <button type="button" id="geo-map-trigger" class="geo-map-trigger-btn" title="Select location from map">📍</button>
                     </div>
                 </div>

@@ -764,6 +764,12 @@
             
             if (requestId !== fetchRequestId) return;
 
+            document.documentElement.dataset.weatherLoadedDate = dateStr;
+
+            if (window.updateAssessmentTimeline) {
+                window.updateAssessmentTimeline();
+            }
+
             lastWeatherData = data;
             lastAssessmentHour = null;
 
