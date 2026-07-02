@@ -83,15 +83,36 @@
 
 <script>
 (function() {
+    function isSelectedDateToday() {
+        const dateSelect = document.getElementById('date-select');
+        if (!dateSelect) return true;
+
+        const today = new Date();
+        const todayStr =
+            today.getFullYear() + '-' +
+            String(today.getMonth() + 1).padStart(2, '0') + '-' +
+            String(today.getDate()).padStart(2, '0');
+
+        return dateSelect.value === todayStr;
+    }   
+    
     // Current time indicator — generic, works for any blueprint SVG
     function updateTimeline() {
         const now = new Date();
         const currentX = 80 + (now.getHours() / 24 + now.getMinutes() / (24 * 60)) * 740;
+        const showTimeline = isSelectedDateToday();
         document.querySelectorAll('svg[id^="telemetry-svg-"]').forEach(svg => {
             const idSuffix = svg.id.replace('telemetry-svg-', '');
             const line = document.getElementById('time-line-' + idSuffix);
             const text = document.getElementById('time-text-' + idSuffix);
             if (!line || !text) return;
+            
+            if (!showTimeline) {
+                line.style.display = 'none';
+                text.style.display = 'none';
+                return;
+            }
+            
             if (currentX >= 80 && currentX <= 820) {
                 line.setAttribute('x1', currentX); line.setAttribute('x2', currentX);
                 text.setAttribute('x', currentX);

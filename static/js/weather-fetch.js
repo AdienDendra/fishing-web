@@ -168,9 +168,44 @@
             dot.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
             });
+            dot.addEventListener('click', e => {
+                tooltip.innerHTML = buildHTML(dot);
+                tooltip.style.display = 'block';
+
+                const rect = container.getBoundingClientRect();
+                tooltip.style.left = (e.clientX - rect.left + container.scrollLeft - tooltip.offsetWidth / 2) + 'px';
+                tooltip.style.top  = (e.clientY - rect.top + container.scrollTop - 55) + 'px';
+
+                setTimeout(() => {
+                    tooltip.style.display = 'none';
+                }, 2200);
+            });           
         });
     }
+    
+    function fillMissingSeries(series) {
+        const filled = [...series];
 
+        // Isi data kosong dari nilai jam sebelumnya
+        for (let i = 0; i < filled.length; i++) {
+            if (filled[i] == null) {
+                const prev = i > 0 ? filled[i - 1] : null;
+                filled[i] = prev;
+            }
+        }
+
+        // Kalau data kosong ada di awal hari, isi dari nilai jam berikutnya
+        for (let i = filled.length - 1; i >= 0; i--) {
+            if (filled[i] == null) {
+                const next = i < filled.length - 1 ? filled[i + 1] : null;
+                filled[i] = next;
+            }
+        }
+
+        // Fallback terakhir: kalau semua data kosong, baru jadikan 0
+        return filled.map(v => Number.isFinite(Number(v)) ? Number(v) : 0);
+    }
+        
     function extractTideHeightSeries(tideData) {
         // Legacy support: old backend returned a plain 24-hour array.
         if (Array.isArray(tideData)) {
@@ -203,8 +238,7 @@
                 series[hour] = value;
             }
         });
-
-        return series.map(v => v ?? 0);
+        return fillMissingSeries(series);
     }
 
 
@@ -566,10 +600,11 @@
                 month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
-                timeZone: 'Australia/Sydney'
+                timeZone: 'Australia/Sydney',
+                timeZoneName: 'short'
             });
 
-            setText('data-updated-time', `${fmt} AEST`);
+            setText('data-updated-time', fmt);            
         }
 
         const banner = el('partial-status-banner');
@@ -667,15 +702,45 @@
     }
 
     function setError(msg) {
-        setText('safety-status-strong', 'ERROR');
-        setText('safety-status-note',   '');
+        applySafetyColor('grey');
+
+        const statusP = el('safety-status-p');
+        if (statusP) {
+            statusP.innerHTML = `
+                <div class="safety-status-title">
+                    SAFETY STATUS: <span id="safety-status-strong">ERROR</span>
+                </div>
+                <div id="safety-status-note" class="safety-status-detail">
+                    Could not refresh weather data. Do not assume current conditions are safe.
+                </div>
+            `;
+        }
+
+        const banner = el('partial-status-banner');
+        if (banner) banner.style.display = 'none';
+
         const panel = el('ai-analysis-panel');
-        if (panel) panel.innerHTML = `<p class="text-sm text-red-500 dark:text-red-400">⚠️ ${msg}</p>`;
+        if (panel) {
+            panel.innerHTML = `<p class="text-sm text-red-500 dark:text-red-400">⚠️ ${escapeHTML(msg)}</p>`;
+        }
     }
 
     // ─── Main fetch ───────────────────────────────────────────────────────────
 
+    let partialRefreshTimer = null;
+    let fetchRequestId = 0;
+
+    function clearPartialRefresh() {
+        if (partialRefreshTimer) {
+            clearTimeout(partialRefreshTimer);
+            partialRefreshTimer = null;
+        }
+    }
+
     async function fetchWeather() {
+        clearPartialRefresh();
+        const requestId = ++fetchRequestId;
+
         const locInput   = el('location-input');
         const dateSelect = el('date-select');
         if (!locInput || !dateSelect) return;
@@ -696,6 +761,8 @@
             const res  = await fetch(url);
             if (!res.ok) throw new Error(`API error ${res.status}`);
             const data = await res.json();
+            
+            if (requestId !== fetchRequestId) return;
 
             lastWeatherData = data;
             lastAssessmentHour = null;
@@ -706,7 +773,7 @@
             updateAnalysisPanel(data);
 
             if (data.status === 'partial') {
-                setTimeout(fetchWeather, 8000);
+                partialRefreshTimer = setTimeout(fetchWeather, 8000);
             }
         } catch (err) {
             console.error('[weather-fetch]', err);

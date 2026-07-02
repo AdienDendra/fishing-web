@@ -75,15 +75,39 @@
         });
 
         SPOTS.forEach(function(spot) {
+            var popup = document.createElement('div');
+            popup.style.fontFamily = 'sans-serif';
+            popup.style.minWidth = '130px';
+
+            var title = document.createElement('strong');
+            title.textContent = spot.name;
+            title.style.display = 'block';
+            title.style.marginBottom = '6px';
+            title.style.fontSize = '13px';
+
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.textContent = '✓ Select This Spot';
+            button.style.width = '100%';
+            button.style.background = '#2563eb';
+            button.style.color = '#fff';
+            button.style.border = 'none';
+            button.style.padding = '5px 0';
+            button.style.borderRadius = '4px';
+            button.style.cursor = 'pointer';
+            button.style.fontSize = '12px';
+            button.style.fontWeight = '600';
+
+            button.addEventListener('click', function() {
+                window.selectFishingSpot(spot.name, spot.lat, spot.lng);
+            });
+
+            popup.appendChild(title);
+            popup.appendChild(button);
+
             _Leaflet.marker([spot.lat, spot.lng], { icon: redIcon })
-                    .addTo(mapEngine)
-                    .bindPopup(
-                        '<div style="font-family:sans-serif;min-width:130px;">' +
-                        '<strong style="display:block;margin-bottom:6px;font-size:13px;">' + spot.name + '</strong>' +
-                        '<button onclick="window.selectFishingSpot(\'' + spot.name + '\',' + spot.lat + ',' + spot.lng + ')" ' +
-                        'style="width:100%;background:#2563eb;color:#fff;border:none;padding:5px 0;border-radius:4px;cursor:pointer;font-size:12px;font-weight:600;">' +
-                        '✓ Select This Spot</button></div>'
-                    );
+                .addTo(mapEngine)
+                .bindPopup(popup);
         });
 
         setTimeout(function() { mapEngine.invalidateSize(); }, 150);
