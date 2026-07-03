@@ -104,12 +104,58 @@ body {
     overflow-x: auto !important;
 }
 
-/* 3. When screen is not wide enough, hide the right-side TOC */
-@media (max-width: 1279px) {
+/* ==========================================================================
+   TABLET TOC LAYOUT
+   On tablet/small laptop, move TOC above article instead of hiding it
+   ========================================================================== */
+
+@media (min-width: 768px) and (max-width: 1279px) {
     aside,
     nav[aria-label="Table of contents"],
     .toc {
-        display: none !important;
+        display: block !important;
+    }
+
+    aside {
+        position: static !important;
+        top: auto !important;
+
+        order: -1 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+
+        margin: 0 0 1.5rem 0 !important;
+        padding: 1rem 0 1rem 0 !important;
+
+        border-left: none !important;
+        border-top: 1px solid rgba(148, 163, 184, 0.25) !important;
+        border-bottom: 1px solid rgba(148, 163, 184, 0.25) !important;
+    }
+
+    aside nav,
+    nav[aria-label="Table of contents"],
+    .toc {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    main article,
+    .prose,
+    .max-w-prose {
+        max-width: 100% !important;
+    }
+}
+
+/* ==========================================================================
+   MOBILE ARTICLE SAFETY
+   Keep TOC available, but make content full width
+   ========================================================================== */
+
+@media (max-width: 767px) {
+    body {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
     }
 
     main article,
@@ -132,11 +178,3 @@ body {
 }
 
 
-/* ── Mobile dashboard edge spacing ────────────────────────── */
-
-@media (max-width: 767px) {
-    body {
-        padding-left: 12px !important;
-        padding-right: 12px !important;
-    }
-}
