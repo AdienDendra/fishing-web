@@ -76,8 +76,59 @@ h2:not(article h2):not(.prose h2) {
   width: auto;
 }
 
+/* Lebar Semua Page */
+
 body {
     max-width: 1440px !important;
+}
+
+/* ==========================================================================
+   ARTICLE / TOC RESPONSIVE SAFETY
+   Prevent long technical text from overlapping the right-side TOC
+   ========================================================================== */
+
+/* 1. Force long paths, API URLs, hashes, or test strings to wrap */
+.prose,
+.prose p,
+.prose li,
+.prose td,
+.prose th,
+.prose code {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+}
+
+/* 2. Keep code blocks scrollable instead of leaking into TOC */
+.prose pre {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+
+/* 3. When screen is not wide enough, hide the right-side TOC */
+@media (max-width: 1279px) {
+    aside,
+    nav[aria-label="Table of contents"],
+    .toc {
+        display: none !important;
+    }
+
+    main article,
+    .prose,
+    .max-w-prose {
+        max-width: 100% !important;
+    }
+}
+
+/* ==========================================================================
+   DOCUMENTATION ARTICLE WIDTH
+   Make technical documentation slightly wider on large screens
+   ========================================================================== */
+
+@media (min-width: 1280px) {
+    main .prose,
+    main .max-w-prose {
+        max-width: 1080px !important;
+    }
 }
 
 
