@@ -407,7 +407,11 @@
         const startHour = Math.max(0, Math.min(23, now.getHours()));
         const endHour = Math.min(startHour + 1, 24);
 
-        return { startHour, endHour };
+        return {
+            startHour,
+            endHour,
+            label: `${formatHourLabel(startHour)}–${formatHourLabel(endHour)}`
+        };
     }
 
     function formatHourLabel(hour) {
@@ -430,6 +434,11 @@
             ? `${value.toFixed(digits)}${suffix}`
             : `—${suffix}`;
     }
+
+    function isLoadedDateToday() {
+        const loadedDate = lastSelectedDate || getSelectedForecastDate();
+        return loadedDate === getTodayDateString();
+    }    
 
     function evaluateSafetyForHour(data, hour) {
         const wave        = getAt(data.marine?.wave_height, hour);
@@ -483,15 +492,176 @@
     }
 
     function evaluateSafetyForAssessment(data) {
-        const { startHour, endHour } = getAssessmentWindow();
+        if (!isLoadedDateToday()) {
+            return evaluateSafetyForDay(data);
+        }
 
-        const result = evaluateSafetyForHour(data, startHour);
+        const window = getAssessmentWindow();
+        const safety = evaluateSafetyForHour(data, window.startHour);
 
         return {
-            ...result,
-            startHour,
-            endHour,
-            windowLabel: `${formatHourLabel(startHour)}–${formatHourLabel(endHour)}`
+            mode: 'hourly',
+            ...safety,
+            windowLabel: window.label
+        };
+    }
+
+    // ─── helper assessment ─────────────────────────────────────────────────────────────────
+
+    function getTodayDateString() {
+        const now = new Date();
+
+        return [
+            now.getFullYear(),
+            String(now.getMonth() + 1).padStart(2, '0'),
+            String(now.getDate()).padStart(2, '0')
+        ].join('-');
+    }
+
+    function getSelectedForecastDate() {
+        const dateSelect = document.getElementById('date-select');
+        return dateSelect ? dateSelect.value : getTodayDateString();
+    }
+
+    function isSelectedDateToday() {
+        return getSelectedForecastDate() === getTodayDateString();
+    }
+
+    function formatHourRange(hour) {
+        const start = String(hour).padStart(2, '0') + ':00';
+        const end = String((hour + 1) % 24).padStart(2, '0') + ':00';
+
+        return `${start}–${end}`;
+    }
+
+    function safetyStatusFromScore(score) {
+        if (score >= 85) {
+            return { status: 'EXTREME', color: 'darkred' };
+        }
+
+        if (score >= 65) {
+            return { status: 'DANGEROUS', color: 'red' };
+        }
+
+        if (score >= 45) {
+            return { status: 'HIGH RISK', color: 'orange' };
+        }
+
+        if (score >= 25) {
+            return { status: 'CONDITIONALLY SAFE', color: 'yellow' };
+        }
+
+        return { status: 'SAFE', color: 'green' };
+    }
+
+    function averageFinite(values) {
+        const valid = values.filter((value) => Number.isFinite(value));
+
+        if (!valid.length) {
+            return null;
+        }
+
+        return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+    }
+        
+    // ─── daily assessment ─────────────────────────────────────────────────────────────────
+
+    function evaluateSafetyForDay(data) {
+        const hourlyResults = [];
+
+        for (let hour = 0; hour < 24; hour += 1) {
+            const hourlySafety = evaluateSafetyForHour(data, hour);
+
+            if (!hourlySafety || !Number.isFinite(hourlySafety.score)) {
+                continue;
+            }
+
+            hourlyResults.push({
+                hour,
+                ...hourlySafety
+            });
+        }
+
+        if (!hourlyResults.length) {
+            return {
+                mode: 'daily',
+                status: 'UNKNOWN',
+                color: 'grey',
+                score: null,
+                averageScore: null,
+                averageStatus: 'UNKNOWN',
+                windowLabel: '24h forecast',
+                seaHeight: null,
+                period: null,
+                wind: null,
+                peakHourLabel: '—',
+                peakStatus: 'UNKNOWN',
+                peakScore: null
+            };
+        }
+
+        const averageScore = Math.round(
+            hourlyResults.reduce((sum, item) => sum + item.score, 0) / hourlyResults.length
+        );
+
+        const averageStatus = safetyStatusFromScore(averageScore);
+
+        const peakScore = Math.max(...hourlyResults.map((item) => item.score));
+        const peakCandidates = hourlyResults.filter((item) => item.score === peakScore);
+
+        /*
+        * If multiple hours have the same peak score, choose the hour with the
+        * highest sea height, then wind, then period. This avoids always picking
+        * 00:00 simply because it appears first in the array.
+        */
+        const peakHour = peakCandidates.reduce((best, item) => {
+            const bestSea = Number.isFinite(best.seaHeight) ? best.seaHeight : -1;
+            const itemSea = Number.isFinite(item.seaHeight) ? item.seaHeight : -1;
+
+            if (itemSea !== bestSea) {
+                return itemSea > bestSea ? item : best;
+            }
+
+            const bestWind = Number.isFinite(best.wind) ? best.wind : -1;
+            const itemWind = Number.isFinite(item.wind) ? item.wind : -1;
+
+            if (itemWind !== bestWind) {
+                return itemWind > bestWind ? item : best;
+            }
+
+            const bestPeriod = Number.isFinite(best.period) ? best.period : -1;
+            const itemPeriod = Number.isFinite(item.period) ? item.period : -1;
+
+            return itemPeriod > bestPeriod ? item : best;
+        }, peakCandidates[0]);
+
+        const peakStatus = safetyStatusFromScore(peakHour.score);
+
+        return {
+            mode: 'daily',
+
+            // Daily headline uses the 24-hour average score.
+            status: averageStatus.status,
+            color: averageStatus.color,
+            score: averageScore,
+
+            averageScore,
+            averageStatus: averageStatus.status,
+
+            windowLabel: '24h forecast',
+
+            seaHeight: averageFinite(hourlyResults.map((item) => item.seaHeight)),
+            period: averageFinite(hourlyResults.map((item) => item.period)),
+            wind: averageFinite(hourlyResults.map((item) => item.wind)),
+
+            peakHourLabel: formatHourRange(peakHour.hour),
+            peakStatus: peakStatus.status,
+            peakScore: peakHour.score,
+
+            // Backward-compatible aliases.
+            worstHourLabel: formatHourRange(peakHour.hour),
+            worstStatus: peakStatus.status,
+            worstScore: peakHour.score
         };
     }
 
@@ -518,41 +688,66 @@
         statusP.style.setProperty('--safety-color', resolvedColor);
     }
 
-    function updateStatusBarFromAssessment() {
-        if (!lastWeatherData) return;
-
-        const safety = evaluateSafetyForAssessment(lastWeatherData);
-        lastAssessmentHour = safety.startHour;
+    function updateStatusBarFromAssessment(data = lastWeatherData) {
+        if (!data) return;
 
         const statusP = el('safety-status-p');
         if (!statusP) return;
 
-        const location = escapeHTML(lastLocationName);
-        const dateLabel = escapeHTML(lastSelectedDateLabel);
-        const windowLabel = escapeHTML(safety.windowLabel);
+        const safety = evaluateSafetyForAssessment(data);
 
-        const seaValue = escapeHTML(formatMetric(safety.seaHeight, 1, 'm'));
-        const periodValue = escapeHTML(formatMetric(safety.period, 0, 's'));
-        const windValue = escapeHTML(formatMetric(safety.wind, 0, 'km/h'));
+        const locationName = lastLocationName || resolveLocation().name;
+        const dateLabel = lastSelectedDateLabel || formatSelectedDateLabel(el('date-select'));
+
+        let title = 'SAFETY STATUS';
+        let detailHTML = '';
+
+        if (safety.mode === 'daily') {
+            title = 'DAILY SAFETY FORECAST';
+
+            detailHTML = `
+                (<strong>${escapeHTML(locationName)}</strong>
+                · ${escapeHTML(dateLabel)}
+                · ${escapeHTML(safety.windowLabel)}
+                · Avg Risk <strong>${escapeHTML(safety.averageStatus)}</strong>
+                · Avg Sea <strong>${formatMetric(safety.seaHeight, 1, 'm')}</strong>
+                · Avg Period <strong>${formatMetric(safety.period, 1, 's')}</strong>
+                · Avg Wind <strong>${formatMetric(safety.wind, 0, 'km/h')}</strong>
+                · Peak <strong>${escapeHTML(safety.peakHourLabel)} ${escapeHTML(safety.peakStatus)}</strong>)
+            `;
+        }        
+        else {
+            detailHTML = `
+                (<strong>${escapeHTML(locationName)}</strong>
+                · ${escapeHTML(dateLabel)}
+                · ${escapeHTML(safety.windowLabel)}
+                · Sea <strong>${formatMetric(safety.seaHeight, 1, 'm')}</strong>
+                · Period <strong>${formatMetric(safety.period, 1, 's')}</strong>
+                · Wind <strong>${formatMetric(safety.wind, 0, 'km/h')}</strong>)
+            `;
+        }
 
         statusP.innerHTML = `
             <div class="safety-status-title">
-                SAFETY STATUS: <span id="safety-status-strong">${escapeHTML(safety.status)}</span>
+                ${title}: <span id="safety-status-strong">${escapeHTML(safety.status)}</span>
             </div>
             <div id="safety-status-note" class="safety-status-detail">
-                (<strong>${location}</strong> · ${dateLabel} · ${windowLabel} ·
-                Sea <strong>${seaValue}</strong> ·
-                Period <strong>${periodValue}</strong> ·
-                Wind <strong>${windValue}</strong>)
+                ${detailHTML}
             </div>
         `;
 
         applySafetyColor(safety.color);
+
+        if (safety.mode === 'hourly') {
+            lastAssessmentHour = getAssessmentWindow().startHour;
+        } else {
+            lastAssessmentHour = null;
+        }
     }
 
     // ─── Status bar ───────────────────────────────────────────────────────────
     function updateStatusBar(data) {
-        updateStatusBarFromAssessment();
+        updateStatusBarFromAssessment(data);
 
         if (data.sr) setText('sunrise-value', data.sr);
         if (data.ss) setText('sunset-value', data.ss);
@@ -801,13 +996,17 @@
     setInterval(() => {
         if (!lastWeatherData) return;
 
+        // Future-date forecasts use a daily summary, so they do not need
+        // minute-by-minute refresh based on the current local hour.
+        if (!isLoadedDateToday()) return;
+
         const { startHour } = getAssessmentWindow();
 
         if (startHour !== lastAssessmentHour) {
-            updateStatusBarFromAssessment();
+            updateStatusBarFromAssessment(lastWeatherData);
         }
     }, 60 * 1000);
-    
+        
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
