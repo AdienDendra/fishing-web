@@ -746,82 +746,96 @@
     }
 
     // ─── Status bar ───────────────────────────────────────────────────────────
+    function formatFishBasis(scoreBasis) {
+        if (!scoreBasis) return '';
+
+        const solunar = scoreBasis.solunar_period;
+        const moon = scoreBasis.moon_phase;
+        const light = scoreBasis.sunrise_sunset_overlap;
+        const tide = scoreBasis.tide_alignment;
+
+        const parts = [];
+
+        if (Number.isFinite(Number(solunar))) parts.push(`Solunar ${solunar}`);
+        if (Number.isFinite(Number(moon))) parts.push(`Moon ${moon}`);
+        if (Number.isFinite(Number(light))) parts.push(`Light ${light}`);
+        if (Number.isFinite(Number(tide))) parts.push(`Tide ${tide}`);
+
+        return parts.join(' · ');
+    }
+
+    function renderFishActivity(data) {
+        const fishActivityEl = el('fish-activity-value');
+        if (!fishActivityEl) return;
+
+        const activity = data.fish_activity || {};
+
+        const score = Number(activity.score);
+        const label = activity.label || '';
+
+        const major = activity.major || data.major || '';
+        const minor = activity.minor || data.minor || '';
+        const low = activity.low || data.low || data.Low || '';
+
+        const basis = formatFishBasis(activity.score_basis);
+
+        const strikeChance = Number.isFinite(score) && label
+            ? `${label} · ${score}/100`
+            : '';
+
+        if (!strikeChance && !major && !minor && !low && !basis) {
+            fishActivityEl.textContent = '—';
+            return;
+        }
+
+        fishActivityEl.innerHTML = `
+            <div class="fish-activity-list">
+                ${strikeChance ? `
+                    <div class="fish-activity-row">
+                        <span class="fish-activity-label">Strike:</span>
+                        <span class="fish-activity-text">${escapeHTML(strikeChance)}</span>
+                    </div>
+                ` : ''}
+
+                ${major ? `
+                    <div class="fish-activity-row">
+                        <span class="fish-activity-label">Major:</span>
+                        <span class="fish-activity-text">${escapeHTML(major)}</span>
+                    </div>
+                ` : ''}
+
+                ${minor ? `
+                    <div class="fish-activity-row">
+                        <span class="fish-activity-label">Minor:</span>
+                        <span class="fish-activity-text">${escapeHTML(minor)}</span>
+                    </div>
+                ` : ''}
+
+                ${low ? `
+                    <div class="fish-activity-row fish-activity-low">
+                        <span class="fish-activity-label">Low:</span>
+                        <span class="fish-activity-text">${escapeHTML(low)}</span>
+                    </div>
+                ` : ''}
+
+                ${basis ? `
+                    <div class="fish-activity-row fish-activity-basis">
+                        <span class="fish-activity-label">Basis:</span>
+                        <span class="fish-activity-text">${escapeHTML(basis)}</span>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
     function updateStatusBar(data) {
         updateStatusBarFromAssessment(data);
 
-        const astronomy = data?.astronomy || {};
-        const fishActivity = data?.fish_activity || {};
+        const astronomy = data.astronomy || {};
 
-        const major = fishActivity.major || data?.major || '';
-        const minor = fishActivity.minor || data?.minor || '';
-        const low = fishActivity.low || data?.low || data?.Low || '';
+        setText('sunrise-value', astronomy.sunrise || data.sr || '—');
+        setText('sunset-value', astronomy.sunset || data.ss || '—');
 
-        const activityScore = Number.isFinite(Number(fishActivity.score))
-            ? Number(fishActivity.score)
-            : null;
-
-        const activityLabel = fishActivity.label || '';
-
-        const basis = fishActivity.score_basis || {};
-        const hasBasis = Object.keys(basis).length > 0;
-
-        // Prefer new schema, fallback to old root aliases.
-        const sunrise = astronomy.sunrise || data?.sr;
-        const sunset = astronomy.sunset || data?.ss;
-
-        if (sunrise) setText('sunrise-value', sunrise);
-        if (sunset) setText('sunset-value', sunset);
-
-        if (major || minor || low || activityLabel || activityScore !== null || hasBasis) {
-            const fishActivityEl = el('fish-activity-value');
-
-            if (fishActivityEl) {
-                fishActivityEl.innerHTML = `
-                    <div class="fish-activity-list">
-                        ${activityLabel || activityScore !== null ? `
-                            <div class="fish-activity-row fish-activity-summary">
-                                <span class="fish-activity-label">Strike Chance:</span>
-                                <span class="fish-activity-text">
-                                    ${escapeHTML(activityLabel)}
-                                    ${activityScore !== null ? ` · ${activityScore}/100` : ''}
-                                </span>
-                            </div>
-                        ` : ''}                    
-                        ${major ? `
-                            <div class="fish-activity-row">
-                                <span class="fish-activity-label">Major:</span>
-                                <span class="fish-activity-text">${escapeHTML(major)}</span>
-                            </div>
-                        ` : ''}
-
-                        ${minor ? `
-                            <div class="fish-activity-row">
-                                <span class="fish-activity-label">Minor:</span>
-                                <span class="fish-activity-text">${escapeHTML(minor)}</span>
-                            </div>
-                        ` : ''}
-
-                        ${low ? `
-                            <div class="fish-activity-row fish-activity-low">
-                                <span class="fish-activity-label">Low:</span>
-                                <span class="fish-activity-text">${escapeHTML(low)}</span>
-                            </div>
-                        ` : ''}
-                        ${hasBasis ? `
-                            <div class="fish-activity-row fish-activity-basis">
-                                <span class="fish-activity-label">Basis:</span>
-                                <span class="fish-activity-text">
-                                    Solunar ${escapeHTML(basis.solunar_period ?? '—')}
-                                    · Moon ${escapeHTML(basis.moon_phase ?? '—')}
-                                    · Light ${escapeHTML(basis.sunrise_sunset_overlap ?? '—')}
-                                    · Tide ${escapeHTML(basis.tide_alignment ?? '—')}
-                                </span>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
-            }
-        }
+        renderFishActivity(data);
 
         if (data.fetched_at) {
             const d = new Date(data.fetched_at);

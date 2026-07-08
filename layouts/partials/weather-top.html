@@ -240,6 +240,162 @@
             width: auto !important;
         }
     }
+    
+    /* ── Weather meta row: sunrise / sunset / fish activity ───────── */
+    .weather-meta-grid {
+        display: grid !important;
+        grid-template-columns:
+            minmax(160px, 1fr)
+            minmax(160px, 1fr)
+            minmax(460px, 1.55fr) !important;
+        gap: 12px !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+
+    /* Follow Location / Date input visual language */
+    .weather-meta-card {
+        min-height: 108px !important;
+        padding: 12px 14px !important;
+
+        border-radius: 8px !important;
+        border: 1px solid #d1d5db !important;
+        background-color: transparent !important;
+
+        color: rgb(31 41 55) !important;
+        box-sizing: border-box !important;
+    }
+
+    .dark .weather-meta-card {
+        border-color: #374151 !important;
+        background-color: transparent !important;
+        color: #e5e7eb !important;
+    }
+
+    /* Same visual weight as Data Updated */
+    .weather-meta-label {
+        font-size: 14px !important;
+        line-height: 1.25 !important;
+        font-weight: 400 !important;
+        margin-bottom: 7px !important;
+
+        color: rgb(75 85 99) !important;
+    }
+
+    .dark .weather-meta-label {
+        color: rgb(156 163 175) !important;
+    }
+
+    .weather-meta-value {
+        font-size: 14px !important;
+        line-height: 1.25 !important;
+        font-weight: 700 !important;
+
+        color: rgb(17 24 39) !important;
+    }
+
+    .dark .weather-meta-value {
+        color: #f3f4f6 !important;
+    }
+
+    /* Sunrise / Sunset centered */
+    .weather-meta-card-time {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center !important;
+    }
+
+    /* Fish Activity centered as a block, but text remains left-aligned */
+    .weather-meta-card-fish {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: left !important;
+    }
+
+    .fish-activity-block {
+        width: min(100%, 560px) !important;
+        margin: 0 auto !important;
+    }
+
+    /* Fish activity content */
+    .fish-activity-list {
+        display: grid !important;
+        gap: 3px !important;
+
+        font-size: 14px !important;
+        line-height: 1.35 !important;
+    }
+
+    .fish-activity-row {
+        display: grid !important;
+        grid-template-columns: 70px minmax(0, 1fr) !important;
+        column-gap: 8px !important;
+        align-items: baseline !important;
+    }
+
+    .fish-activity-label {
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+
+        color: #111827 !important;
+    }
+
+    .dark .fish-activity-label {
+        color: #f3f4f6 !important;
+    }
+
+    .fish-activity-text {
+        font-weight: 700 !important;
+        overflow-wrap: anywhere !important;
+
+        color: #1f2937 !important;
+    }
+
+    .dark .fish-activity-text {
+        color: #dbeafe !important;
+    }
+    
+    /* Only Low is visually secondary */
+    .fish-activity-low .fish-activity-label,
+    .fish-activity-low .fish-activity-text {
+        opacity: 0.62 !important;
+    }
+
+    /* Basis stays normal */
+    .fish-activity-basis .fish-activity-label,
+    .fish-activity-basis .fish-activity-text {
+        opacity: 1 !important;
+        font-weight: 700 !important;
+    }
+
+    @media (max-width: 767px) {
+        .weather-meta-grid {
+            grid-template-columns: 1fr !important;
+        }
+
+        .weather-meta-card {
+            min-height: auto !important;
+        }
+
+        .weather-meta-card-time {
+            min-height: 76px !important;
+        }
+
+        .weather-meta-card-fish {
+            align-items: stretch !important;
+        }
+
+        .fish-activity-block {
+            width: 100% !important;
+        }
+
+        .fish-activity-row {
+            grid-template-columns: 66px minmax(0, 1fr) !important;
+        }
+    }
 </style>
 
 <div class="w-full space-y-4">
@@ -311,18 +467,22 @@
 
         <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
-        <div class="flex flex-row justify-between items-center text-sm sm:text-base font-mono text-neutral-600 dark:text-neutral-400 pt-1 w-full">
-            <div class="w-1/3 flex items-center justify-start gap-1">
-                <span>Sunrise:</span>
-                <span id="sunrise-value" class="font-semibold text-neutral-800 dark:text-neutral-200">—</span>
+        <div class="weather-meta-grid font-mono text-sm sm:text-base text-neutral-600 dark:text-neutral-400 pt-1">
+            <div class="weather-meta-card weather-meta-card-time">
+                <div class="weather-meta-label">Sunrise</div>
+                <div id="sunrise-value" class="weather-meta-value">—</div>
             </div>
-            <div class="w-1/3 flex items-center justify-center gap-1 border-x border-neutral-200 dark:border-neutral-800 px-2 text-center">
-                <span>Sunset:</span>
-                <span id="sunset-value" class="font-semibold text-neutral-800 dark:text-neutral-200">—</span>
+
+            <div class="weather-meta-card weather-meta-card-time">
+                <div class="weather-meta-label">Sunset</div>
+                <div id="sunset-value" class="weather-meta-value">—</div>
             </div>
-            <div class="w-1/3 flex flex-col items-end text-right">
-                <span>Fish Activity</span>
-                <div id="fish-activity-value" class="font-semibold"></div>
+
+            <div class="weather-meta-card weather-meta-card-fish">
+                <div class="fish-activity-block">
+                    <div class="weather-meta-label">Fish Activity</div>
+                    <div id="fish-activity-value">—</div>
+                </div>
             </div>
         </div>
     </div>
