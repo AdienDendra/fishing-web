@@ -749,19 +749,44 @@
     function updateStatusBar(data) {
         updateStatusBarFromAssessment(data);
 
-        if (data.sr) setText('sunrise-value', data.sr);
-        if (data.ss) setText('sunset-value', data.ss);
+        const astronomy = data?.astronomy || {};
+        const fishActivity = data?.fish_activity || {};
 
-        if (data.major || data.minor || data.low || data.Low) {
-            const major = data.major || '';
-            const minor = data.minor || '';
-            const low = data.low || data.Low || '';
+        const major = fishActivity.major || data?.major || '';
+        const minor = fishActivity.minor || data?.minor || '';
+        const low = fishActivity.low || data?.low || data?.Low || '';
 
+        const activityScore = Number.isFinite(Number(fishActivity.score))
+            ? Number(fishActivity.score)
+            : null;
+
+        const activityLabel = fishActivity.label || '';
+
+        const basis = fishActivity.score_basis || {};
+        const hasBasis = Object.keys(basis).length > 0;
+
+        // Prefer new schema, fallback to old root aliases.
+        const sunrise = astronomy.sunrise || data?.sr;
+        const sunset = astronomy.sunset || data?.ss;
+
+        if (sunrise) setText('sunrise-value', sunrise);
+        if (sunset) setText('sunset-value', sunset);
+
+        if (major || minor || low || activityLabel || activityScore !== null || hasBasis) {
             const fishActivityEl = el('fish-activity-value');
 
             if (fishActivityEl) {
                 fishActivityEl.innerHTML = `
                     <div class="fish-activity-list">
+                        ${activityLabel || activityScore !== null ? `
+                            <div class="fish-activity-row fish-activity-summary">
+                                <span class="fish-activity-label">Strike Chance:</span>
+                                <span class="fish-activity-text">
+                                    ${escapeHTML(activityLabel)}
+                                    ${activityScore !== null ? ` · ${activityScore}/100` : ''}
+                                </span>
+                            </div>
+                        ` : ''}                    
                         ${major ? `
                             <div class="fish-activity-row">
                                 <span class="fish-activity-label">Major:</span>
@@ -782,6 +807,17 @@
                                 <span class="fish-activity-text">${escapeHTML(low)}</span>
                             </div>
                         ` : ''}
+                        ${hasBasis ? `
+                            <div class="fish-activity-row fish-activity-basis">
+                                <span class="fish-activity-label">Basis:</span>
+                                <span class="fish-activity-text">
+                                    Solunar ${escapeHTML(basis.solunar_period ?? '—')}
+                                    · Moon ${escapeHTML(basis.moon_phase ?? '—')}
+                                    · Light ${escapeHTML(basis.sunrise_sunset_overlap ?? '—')}
+                                    · Tide ${escapeHTML(basis.tide_alignment ?? '—')}
+                                </span>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }
@@ -799,7 +835,7 @@
                 timeZoneName: 'short'
             });
 
-            setText('data-updated-time', fmt);            
+            setText('data-updated-time', fmt);
         }
 
         const banner = el('partial-status-banner');
