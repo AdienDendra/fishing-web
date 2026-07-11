@@ -759,7 +759,7 @@
         if (Number.isFinite(Number(solunar))) parts.push(`Solunar ${solunar}`);
         if (Number.isFinite(Number(moon))) parts.push(`Moon Phase ${moon}`);
         if (Number.isFinite(Number(light))) parts.push(`Dawn/Dusk ${light}`);
-        if (Number.isFinite(Number(tide))) parts.push(`Tide Timing ${tide}`);
+        if (Number.isFinite(Number(tide))) parts.push(`Tide ${tide}`);
 
         return parts.join(' · ');
     }
@@ -820,7 +820,7 @@
 
                 ${basis ? `
                     <div class="fish-activity-row fish-activity-basis">
-                        <span class="fish-activity-label">Score Breakdown:</span>
+                        <span class="fish-activity-label">Score:</span>
                         <span class="fish-activity-text">${escapeHTML(basis)}</span>
                     </div>
                 ` : ''}
