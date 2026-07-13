@@ -747,21 +747,33 @@
 
     // ─── Status bar ───────────────────────────────────────────────────────────
     function formatFishBasis(scoreBasis) {
-        if (!scoreBasis) return '';
+        if (!scoreBasis || typeof scoreBasis !== 'object') {
+            return '';
+        }
 
-        const solunar = scoreBasis.solunar_period;
-        const moon = scoreBasis.moon_phase;
-        const light = scoreBasis.sunrise_sunset_overlap;
-        const tide = scoreBasis.tide_alignment;
+        /*
+        * Keep this mapping aligned with fishing-backend
+        * fish_activity.score_basis schema version 2.1.
+        */
+        const components = [
+            ['solunar_period', 'Solunar'],
+            ['moon_phase', 'Moon'],
+            ['sunrise_sunset_overlap', 'Dawn/Dusk'],
+            ['tide_alignment', 'Tide'],
+            ['pressure', 'Pressure'],
+            ['wind', 'Wind']
+        ];
 
-        const parts = [];
+        return components
+            .map(([key, label]) => {
+                const value = Number(scoreBasis[key]);
 
-        if (Number.isFinite(Number(solunar))) parts.push(`Solunar ${solunar}`);
-        if (Number.isFinite(Number(moon))) parts.push(`Moon Phase ${moon}`);
-        if (Number.isFinite(Number(light))) parts.push(`Dawn/Dusk ${light}`);
-        if (Number.isFinite(Number(tide))) parts.push(`Tide ${tide}`);
-
-        return parts.join(' · ');
+                return Number.isFinite(value)
+                    ? `${label} ${value}`
+                    : null;
+            })
+            .filter(Boolean)
+            .join(' · ');
     }
 
     function renderFishActivity(data) {
@@ -813,14 +825,13 @@
 
                 ${strikeChance ? `
                     <div class="fish-activity-row">
-                        <span class="fish-activity-label">Strike Chance:</span>
+                        <span class="fish-activity-label">Activity Rating:</span>
                         <span class="fish-activity-text">${escapeHTML(strikeChance)}</span>
                     </div>
                 ` : ''}
-
                 ${basis ? `
                     <div class="fish-activity-row fish-activity-basis">
-                        <span class="fish-activity-label">Score:</span>
+                        <span class="fish-activity-label">Basis:</span>
                         <span class="fish-activity-text">${escapeHTML(basis)}</span>
                     </div>
                 ` : ''}
@@ -1023,7 +1034,12 @@
             renderPeriodGraph(data);
             updateAnalysisPanel(data);
 
-            if (data.status === 'partial') {
+            const shouldAutoRefresh =
+                data.status === 'partial' ||
+                data.status === 'activity_ready' ||
+                data.analysis_status === 'pending';
+
+            if (shouldAutoRefresh) {
                 partialRefreshTimer = setTimeout(fetchWeather, 8000);
             }
         } catch (err) {
