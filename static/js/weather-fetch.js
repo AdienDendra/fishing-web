@@ -1282,9 +1282,19 @@
             lastWeatherData = data;
             lastAssessmentHour = null;
 
+            /*
+            * Update dashboard summary before rendering graphs.
+            * This fills Safety Status, Data Updated, Sunrise,
+            * Sunset, and Fish Activity.
+            */
+            updateStatusBar(data);
+
             renderHeightGraph(data);
             renderPeriodGraph(data);
             renderWindGraph(data);
+            renderTemperatureGraph(data);
+            renderPressureGraph(data);
+
             updateAnalysisPanel(data);
 
             const shouldAutoRefresh =
