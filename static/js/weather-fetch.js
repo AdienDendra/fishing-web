@@ -122,7 +122,11 @@
             circle.setAttribute('r',  '2');
             circle.setAttribute('fill', 'currentColor');
             circle.setAttribute(dataAttr, v.toFixed(2));
-            circle.classList.add(`color-${seriesName}`, 'graph-dot');
+            circle.classList.add(
+                `color-${seriesName}`,
+                'graph-point',
+                'graph-dot'
+            );
             group.appendChild(circle);
         });
     }
@@ -155,32 +159,59 @@
         tooltip.className = 'custom-graph-tooltip';
         container.appendChild(tooltip);
 
-        svgEl.querySelectorAll('.graph-dot').forEach(dot => {
-            dot.addEventListener('mouseenter', () => {
-                tooltip.innerHTML = buildHTML(dot);
+        svgEl.querySelectorAll('.graph-point').forEach(point => {
+            point.addEventListener('mouseenter', () => {
+                tooltip.innerHTML = buildHTML(point);
                 tooltip.style.display = 'block';
             });
-            dot.addEventListener('mousemove', e => {
+
+            point.addEventListener('mousemove', event => {
                 const rect = container.getBoundingClientRect();
-                tooltip.style.left = (e.clientX - rect.left + container.scrollLeft - tooltip.offsetWidth / 2) + 'px';
-                tooltip.style.top  = (e.clientY - rect.top  + container.scrollTop  - 55) + 'px';
+
+                tooltip.style.left = (
+                    event.clientX -
+                    rect.left +
+                    container.scrollLeft -
+                    tooltip.offsetWidth / 2
+                ) + 'px';
+
+                tooltip.style.top = (
+                    event.clientY -
+                    rect.top +
+                    container.scrollTop -
+                    55
+                ) + 'px';
             });
-            dot.addEventListener('mouseleave', () => {
+
+            point.addEventListener('mouseleave', () => {
                 tooltip.style.display = 'none';
             });
-            dot.addEventListener('click', e => {
-                tooltip.innerHTML = buildHTML(dot);
+
+            point.addEventListener('click', event => {
+                tooltip.innerHTML = buildHTML(point);
                 tooltip.style.display = 'block';
 
                 const rect = container.getBoundingClientRect();
-                tooltip.style.left = (e.clientX - rect.left + container.scrollLeft - tooltip.offsetWidth / 2) + 'px';
-                tooltip.style.top  = (e.clientY - rect.top + container.scrollTop - 55) + 'px';
+
+                tooltip.style.left = (
+                    event.clientX -
+                    rect.left +
+                    container.scrollLeft -
+                    tooltip.offsetWidth / 2
+                ) + 'px';
+
+                tooltip.style.top = (
+                    event.clientY -
+                    rect.top +
+                    container.scrollTop -
+                    55
+                ) + 'px';
 
                 setTimeout(() => {
                     tooltip.style.display = 'none';
                 }, 2200);
-            });           
-        });
+            });
+        });              
     }
     
     function fillMissingSeries(series) {
@@ -298,6 +329,113 @@
                     <div class="tt-value color-${seriesName}">${period}s</div>`;
         });
     }
+
+    function numericSeries(values) {
+        return Array.from({ length: 24 }, (_, index) => {
+            const value = Number(values?.[index]);
+            return Number.isFinite(value) ? value : 0;
+        });
+    }
+
+    function cardinalFromDegrees(rawDegrees) {
+        const degrees = Number(rawDegrees);
+
+        if (!Number.isFinite(degrees)) {
+            return '—';
+        }
+
+        const directions = [
+            'N', 'NNE', 'NE', 'ENE',
+            'E', 'ESE', 'SE', 'SSE',
+            'S', 'SSW', 'SW', 'WSW',
+            'W', 'WNW', 'NW', 'NNW'
+        ];
+
+        const normalized = ((degrees % 360) + 360) % 360;
+        const index = Math.round(normalized / 22.5) % 16;
+
+        return directions[index];
+    }
+
+
+    function createWindArrow({
+        x,
+        y,
+        direction,
+        hour,
+        speed,
+        gust
+    }) {
+        const arrow = document.createElementNS(SVG_NS, 'path');
+
+        /*
+        * Arrow points upward at 0 degrees, then rotates clockwise.
+        * Change direction to (direction + 180) % 360 if the arrow should
+        * show where the wind travels instead of its compass bearing.
+        */
+        arrow.setAttribute(
+            'd',
+            'M 0 -7 L 5 3 L 1.8 2 L 1.8 7 ' +
+            'L -1.8 7 L -1.8 2 L -5 3 Z'
+        );
+
+        arrow.setAttribute(
+            'transform',
+            `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${direction})`
+        );
+
+        arrow.setAttribute('fill', 'currentColor');
+
+        arrow.dataset.hour = String(hour);
+        arrow.dataset.speed = String(speed);
+        arrow.dataset.gust = String(gust);
+        arrow.dataset.direction = String(direction);
+
+        arrow.classList.add(
+            'color-wind',
+            'graph-point',
+            'wind-direction-arrow'
+        );
+
+        return arrow;
+    }
+
+
+    function createGustDiamond({
+        x,
+        y,
+        hour,
+        speed,
+        gust,
+        direction
+    }) {
+        const diamond = document.createElementNS(SVG_NS, 'path');
+
+        diamond.setAttribute(
+            'd',
+            'M 0 -4 L 4 0 L 0 4 L -4 0 Z'
+        );
+
+        diamond.setAttribute(
+            'transform',
+            `translate(${x.toFixed(1)} ${y.toFixed(1)})`
+        );
+
+        diamond.setAttribute('fill', 'currentColor');
+
+        diamond.dataset.hour = String(hour);
+        diamond.dataset.speed = String(speed);
+        diamond.dataset.gust = String(gust);
+        diamond.dataset.direction = String(direction);
+
+        diamond.classList.add(
+            'color-gust',
+            'graph-point',
+            'wind-gust-marker'
+        );
+
+        return diamond;
+    }    
 
     // ─── Safety evaluation ────────────────────────────────────────────────────
     function getAt(arr, hour) {
@@ -505,6 +643,121 @@
             windowLabel: window.label
         };
     }
+
+    function renderWindGraph(data) {
+        const speed = numericSeries(
+            data.weather?.wind_speed_10m
+        );
+
+        const gust = numericSeries(
+            data.weather?.wind_gusts_10m
+        );
+
+        const directions = numericSeries(
+            data.weather?.wind_direction_10m
+        );
+
+        const speedPath = el('wind-wind-path');
+        const gustPath = el('gust-wind-path');
+
+        const speedMarkers = el('wind-wind-dots');
+        const gustMarkers = el('gust-wind-dots');
+
+        if (
+            !speedPath ||
+            !gustPath ||
+            !speedMarkers ||
+            !gustMarkers
+        ) {
+            return;
+        }
+
+        speedPath.setAttribute(
+            'd',
+            buildPath(speed, 0, 80)
+        );
+
+        gustPath.setAttribute(
+            'd',
+            buildPath(gust, 0, 80)
+        );
+
+        speedMarkers.innerHTML = '';
+        gustMarkers.innerHTML = '';
+
+        const markerHours = [
+            0, 2, 4, 6, 8, 10, 12,
+            14, 16, 18, 20, 22, 24
+        ];
+
+        markerHours.forEach(displayHour => {
+            const dataHour = displayHour < 24
+                ? displayHour
+                : 23;
+
+            const speedValue = speed[dataHour];
+            const gustValue = gust[dataHour];
+            const directionValue = directions[dataHour];
+
+            const x = toX(displayHour);
+
+            speedMarkers.appendChild(
+                createWindArrow({
+                    x,
+                    y: toY(speedValue, 0, 80),
+                    direction: directionValue,
+                    hour: displayHour,
+                    speed: speedValue,
+                    gust: gustValue
+                })
+            );
+
+            gustMarkers.appendChild(
+                createGustDiamond({
+                    x,
+                    y: toY(gustValue, 0, 80),
+                    hour: displayHour,
+                    speed: speedValue,
+                    gust: gustValue,
+                    direction: directionValue
+                })
+            );
+        });
+
+        setupTooltips('telemetry-svg-wind', point => {
+            const speedValue = Number(
+                point.dataset.speed
+            ).toFixed(1);
+
+            const gustValue = Number(
+                point.dataset.gust
+            ).toFixed(1);
+
+            const direction = Number(
+                point.dataset.direction
+            );
+
+            const cardinal = cardinalFromDegrees(direction);
+
+            return `
+                <div class="tt-head">
+                    <span class="tt-label color-wind">
+                        Wind ${cardinal} (${Math.round(direction)}°)
+                    </span>
+                </div>
+
+                <div class="tt-value">
+                    <span class="color-wind">
+                        ${speedValue}km/h
+                    </span>
+                    ·
+                    <span class="color-gust">
+                        Gust ${gustValue}km/h
+                    </span>
+                </div>
+            `;
+        });
+    }    
 
     // ─── helper assessment ─────────────────────────────────────────────────────────────────
 
@@ -1029,9 +1282,9 @@
             lastWeatherData = data;
             lastAssessmentHour = null;
 
-            updateStatusBar(data);
             renderHeightGraph(data);
             renderPeriodGraph(data);
+            renderWindGraph(data);
             updateAnalysisPanel(data);
 
             const shouldAutoRefresh =
@@ -1050,6 +1303,96 @@
         }
     }
 
+    // ─── Temperature Graph  ─────────────────────────────────────────────────────────────────
+    function renderTemperatureGraph(data) {
+        const temperature = numericSeries(
+            data.weather?.temperature_2m
+        );
+
+        const apparent = numericSeries(
+            data.weather?.apparent_temperature
+        );
+
+        renderSeries(
+            'temperature',
+            'temperature',
+            temperature,
+            0,
+            40,
+            'data-value'
+        );
+
+        renderSeries(
+            'apparent',
+            'temperature',
+            apparent,
+            0,
+            40,
+            'data-value'
+        );
+
+        setupTooltips('telemetry-svg-temperature', point => {
+            const value = Number(
+                point.getAttribute('data-value')
+            ).toFixed(1);
+
+            const isApparent = point.classList.contains(
+                'color-apparent'
+            );
+
+            const series = isApparent
+                ? 'apparent'
+                : 'temperature';
+
+            const label = isApparent
+                ? 'Feels Like'
+                : 'Air Temperature';
+
+            return `
+                <div class="tt-head">
+                    <span class="tt-label color-${series}">
+                        ${label}
+                    </span>
+                </div>
+                <div class="tt-value color-${series}">
+                    ${value}°C
+                </div>
+            `;
+        });
+    }
+
+    // ─── Pressure Graph  ─────────────────────────────────────────────────────────────────
+    function renderPressureGraph(data) {
+        const pressure = numericSeries(
+            data.weather?.pressure_msl
+        );
+
+        renderSeries(
+            'pressure',
+            'pressure',
+            pressure,
+            980,
+            1040,
+            'data-value'
+        );
+
+        setupTooltips('telemetry-svg-pressure', point => {
+            const value = Number(
+                point.getAttribute('data-value')
+            ).toFixed(1);
+
+            return `
+                <div class="tt-head">
+                    <span class="tt-label color-pressure">
+                        Sea Level Pressure
+                    </span>
+                </div>
+                <div class="tt-value color-pressure">
+                    ${value}hPa
+                </div>
+            `;
+        });
+    }
     // ─── Init ─────────────────────────────────────────────────────────────────
     function init() {
         const btn      = el('weather-check-btn');

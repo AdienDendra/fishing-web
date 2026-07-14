@@ -194,6 +194,61 @@
     /* Dangerous threshold marker */
     .color-dangerous { color: #ef4444; }
 
+    /* Wind direction arrow */
+    .wind-direction-arrow {
+        cursor: pointer;
+        transition:
+            opacity 0.12s ease,
+            filter 0.12s ease;
+    }
+
+    .wind-direction-arrow:hover {
+        filter: brightness(1.25);
+    }
+
+    /* Gust marker */
+    .wind-gust-marker {
+        cursor: pointer;
+        transition:
+            opacity 0.12s ease,
+            transform 0.12s ease;
+    }
+
+    /* Gust line visually separated from sustained wind */
+    #gust-wind-path {
+        stroke-dasharray: 5 4;
+        stroke-width: 1.6;
+    }
+
+    /* Shared interactive graph marker */
+    .graph-point {
+        cursor: pointer;
+    }    
+
+    .color-temperature {
+        color: #dc2626;
+    }
+
+    .dark .color-temperature {
+        color: #f87171;
+    }
+
+    .color-apparent {
+        color: #d97706;
+    }
+
+    .dark .color-apparent {
+        color: #fbbf24;
+    }
+
+    .color-pressure {
+        color: #7c3aed;
+    }
+
+    .dark .color-pressure {
+        color: #a78bfa;
+    }
+    
     /* ── Dot interactivity ───────────────────────────────────────── */
     .graph-dot {
         r: 5px !important;

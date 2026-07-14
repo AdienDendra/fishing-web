@@ -61,6 +61,30 @@
         ) }}
     </div>
 
+    <div class="graph-scroll">
+        {{ partial "weather-graph-blueprint.html" (dict
+            "id"         "temperature"
+            "title"      "AIR AND APPARENT TEMPERATURE GRAPH"
+            "y_unit"     "Temperature(°C)"
+            "y_max"      40.0
+            "labels"     (slice "40" "35" "30" "25" "20" "15" "10" "5" "0")
+            "series"     (slice "temperature" "apparent")
+            "legend"     (slice "Air Temperature" "Feels Like")
+        ) }}
+    </div>
+
+    <div class="graph-scroll">
+        {{ partial "weather-graph-blueprint.html" (dict
+            "id"         "pressure"
+            "title"      "SEA LEVEL PRESSURE GRAPH"
+            "y_unit"     "Pressure(hPa)"
+            "y_max"      1040.0
+            "labels"     (slice "1040" "1032.5" "1025" "1017.5" "1010" "1002.5" "995" "987.5" "980")
+            "series"     (slice "pressure")
+            "legend"     (slice "Sea Level Pressure")
+        ) }}
+    </div>    
+
 </div>
 
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
@@ -78,6 +102,7 @@
         Press Check to load analysis...
     </div>
 </div>
+
 
 <div class="border-t border-neutral-200 dark:border-neutral-800/60 my-3 opacity-50"></div>
 
