@@ -1,0 +1,212 @@
+{{/*
+    Custom dual-axis precipitation graph.
+
+    Left axis:
+      precipitation — millimetres
+
+    Right axis:
+      precipitation_probability — percentage
+
+    Generated IDs used by weather-fetch.js:
+      telemetry-svg-rain
+      precipitation-rain-bars
+      probability-rain-path
+      probability-rain-dots
+      time-line-rain
+      time-text-rain
+*/}}
+
+{{ $chartXStart := 80 }}
+{{ $chartXEnd := 820 }}
+
+{{ $xTicks := slice
+    80 142 203 265 327 388 450
+    512 573 635 697 758 820
+}}
+
+{{ $times := slice
+    "00:00" "02:00" "04:00" "06:00"
+    "08:00" "10:00" "12:00" "14:00"
+    "16:00" "18:00" "20:00" "22:00"
+    "24:00"
+}}
+
+{{ $yPositions := slice 40 104 168 232 296 360 }}
+{{ $probabilityLabels := slice "100" "80" "60" "40" "20" "0" }}
+
+<div class="w-full space-y-3 text-neutral-600 dark:text-neutral-400">
+
+    <div class="flex justify-center items-center w-full">
+        <h3 class="text-sm font-mono font-bold text-neutral-700 dark:text-neutral-300 uppercase tracking-wider">
+            PRECIPITATION AND RAIN PROBABILITY GRAPH
+        </h3>
+    </div>
+
+    <div class="telemetry-container py-2 font-mono relative select-none w-full">
+        <svg
+            id="telemetry-svg-rain"
+            viewBox="0 0 900 410"
+            class="responsive-svg w-full h-auto block"
+            xmlns="http://www.w3.org/2000/svg">
+
+            {{/* Horizontal grid lines */}}
+            {{ range $yPositions }}
+                <line
+                    x1="{{ $chartXStart }}"
+                    y1="{{ . }}"
+                    x2="{{ $chartXEnd }}"
+                    y2="{{ . }}"
+                    class="chart-grid-line"
+                    stroke-width="1" />
+            {{ end }}
+
+            {{/* Chart borders */}}
+            <line
+                x1="{{ $chartXStart }}"
+                y1="30"
+                x2="{{ $chartXStart }}"
+                y2="370"
+                stroke="currentColor"
+                stroke-width="1"
+                opacity="0.15" />
+
+            <line
+                x1="{{ $chartXEnd }}"
+                y1="30"
+                x2="{{ $chartXEnd }}"
+                y2="370"
+                stroke="currentColor"
+                stroke-width="1"
+                opacity="0.15" />
+
+            <line
+                x1="{{ $chartXStart }}"
+                y1="360"
+                x2="{{ $chartXEnd }}"
+                y2="360"
+                stroke="currentColor"
+                stroke-width="1"
+                opacity="0.3" />
+
+            {{/* Axis units */}}
+            <text
+                x="84"
+                y="20"
+                fill="currentColor"
+                text-anchor="start"
+                class="svg-text-micro opacity-50">
+                Precipitation(mm)
+            </text>
+
+            <text
+                x="816"
+                y="20"
+                fill="currentColor"
+                text-anchor="end"
+                class="svg-text-micro opacity-50">
+                Probability(%)
+            </text>
+
+            {{/*
+                Left labels are filled dynamically because precipitation
+                needs a scale based on the largest hourly value.
+            */}}
+            <g fill="currentColor" class="svg-text-small">
+                {{ range $index, $y := $yPositions }}
+                    <text
+                        id="rain-left-label-{{ $index }}"
+                        x="70"
+                        y="{{ add $y 4 }}"
+                        text-anchor="end">
+                        —
+                    </text>
+
+                    <text
+                        x="830"
+                        y="{{ add $y 4 }}"
+                        text-anchor="start">
+                        {{ index $probabilityLabels $index }}
+                    </text>
+                {{ end }}
+            </g>
+
+            {{/* X-axis tick dots */}}
+            <g fill="currentColor" opacity="0.4">
+                {{ range $xTicks }}
+                    <circle cx="{{ . }}" cy="360" r="2" />
+                {{ end }}
+            </g>
+
+            {{/* X-axis labels */}}
+            <g
+                fill="currentColor"
+                class="svg-text-small"
+                text-anchor="middle">
+
+                {{ range $index, $x := $xTicks }}
+                    <text x="{{ $x }}" y="392">
+                        {{ index $times $index }}
+                    </text>
+                {{ end }}
+            </g>
+
+            {{/* Precipitation bars */}}
+            <g id="precipitation-rain-bars"></g>
+
+            {{/* Probability line */}}
+            <path
+                id="probability-rain-path"
+                fill="none"
+                stroke="currentColor"
+                class="color-rain-probability"
+                stroke-width="1.8" />
+
+            <g
+                id="probability-rain-dots"
+                class="color-rain-probability">
+            </g>
+
+            {{/* Assessment time */}}
+            <line
+                id="time-line-rain"
+                x1="-10"
+                y1="40"
+                x2="-10"
+                y2="360"
+                stroke="#FFDD00"
+                stroke-width="1.5"
+                opacity="0.8" />
+
+            <text
+                id="time-text-rain"
+                x="-10"
+                y="33"
+                fill="#FFDD00"
+                text-anchor="middle"
+                class="svg-text-micro font-bold">
+            </text>
+
+        </svg>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-center gap-3 font-size-micro text-neutral-500 dark:text-neutral-400 mt-2">
+        <div class="legend-gap justify-center">
+
+            <div class="flex items-center gap-1">
+                <span class="rain-bar-legend color-precipitation"></span>
+                <span class="font-bold text-neutral-700 dark:text-neutral-300">
+                    Precipitation
+                </span>
+            </div>
+
+            <div class="flex items-center gap-1">
+                <span class="color-rain-probability">——•</span>
+                <span class="font-bold text-neutral-700 dark:text-neutral-300">
+                    Rain Probability
+                </span>
+            </div>
+
+        </div>
+    </div>
+
+</div>

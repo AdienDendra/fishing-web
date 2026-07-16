@@ -42,6 +42,19 @@
 {{ if gt (float $y_max) 0.0 }}
     {{ $ratio    := div (float $danger_val) (float $y_max) }}
     {{ $danger_y  = sub 360.0 (mul $ratio 320.0) }}
+
+{{/* Dot color */}}
+{{ $y_min       := .y_min | default 0.0 }}
+{{ $id          := .id }}
+{{ $title       := .title }}
+{{ $y_unit      := .y_unit }}
+{{ $y_min       := .y_min        | default 0.0 }}
+{{ $y_max       := .y_max        | default 1.0 }}
+{{ $danger_val  := .danger_val   | default 0.0 }}
+{{ $series      := .series       | default (slice) }}
+{{ $legend      := .legend       | default (slice) }}
+{{ $dangerLabel := .danger_label | default "" }}
+
 {{ end }}
 
 <div class="w-full space-y-3 text-neutral-600 dark:text-neutral-400">
@@ -56,9 +69,13 @@
     {{/* SVG */}}
     <div class="telemetry-container py-2 font-mono relative select-none w-full">
         <svg id="telemetry-svg-{{ $id }}"
-             viewBox="0 0 900 410"
-             class="responsive-svg w-full h-auto block"
-             xmlns="http://www.w3.org/2000/svg">
+            viewBox="0 0 900 410"
+            class="responsive-svg w-full h-auto block"
+            data-y-min="{{ $y_min }}"
+            data-y-max="{{ $y_max }}"
+            data-danger-value="{{ $danger_val }}"
+            xmlns="http://www.w3.org/2000/svg">   
+
 
             {{/* ── Grid lines ── */}}
             {{ range seq 40 40 360 }}
@@ -118,7 +135,8 @@
                 <circle cx="{{ . }}" cy="360" r="2" />
                 {{ end }}
             </g>
-
+            
+            
             {{/* ── X axis time labels ── */}}
             {{ $times := slice "00:00" "02:00" "04:00" "06:00" "08:00" "10:00" "12:00" "14:00" "16:00" "18:00" "20:00" "22:00" "24:00" }}
             <g fill="currentColor" class="svg-text-small" text-anchor="middle">

@@ -18,10 +18,11 @@
 <div class="weather-graph-grid grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-8 w-full items-start">
     {{/* ── Height graph ── */}}
     <div class="graph-scroll">
-           {{ partial "weather-graph-blueprint.html" (dict
+        {{ partial "weather-graph-blueprint.html" (dict
             "id"           "height"
             "title"        "WAVE SWELL AND TIDE HEIGHT GRAPH"
             "y_unit"       "Height(m)"
+            "y_min"        0.0
             "y_max"        4.0
             "danger_val"   2.0
             "labels"       (slice "4.00" "3.50" "3.00" "2.50" "2.00" "1.50" "1.00" "0.50" "0.00")
@@ -29,6 +30,19 @@
             "legend"       (slice "Wave Height" "Swell Height" "Tide Height")
             "danger_label" "DANGER (≥2.00m)"
         ) }}
+
+        <div class="marker-risk-legend">
+            <span class="marker-risk-gradient"></span>
+
+            <span>
+                Marker risk:
+                <strong>low</strong>
+                →
+                <strong>danger</strong>
+                →
+                <strong>above danger</strong>
+            </span>
+        </div>
     </div>
 
     {{/* ── Period graph ── */}}
@@ -83,7 +97,12 @@
             "series"     (slice "pressure")
             "legend"     (slice "Sea Level Pressure")
         ) }}
-    </div>    
+    </div>  
+
+    {{/* ── Precipitation / probability dual-axis graph ── */}}
+    <div class="graph-scroll">
+        {{ partial "weather-rain-graph.html" . }}
+    </div>  
 
 </div>
 

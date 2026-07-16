@@ -103,7 +103,15 @@
      * Path ID:  {seriesName}-{graphId}-path
      * Group ID: {seriesName}-{graphId}-dots
      */
-    function renderSeries(seriesName, graphId, values, min, max, dataAttr) {
+    function renderSeries(
+        seriesName,
+        graphId,
+        values,
+        min,
+        max,
+        dataAttr,
+        markerOptions = null
+    ) {
         const pathEl = el(`${seriesName}-${graphId}-path`);
         const group  = el(`${seriesName}-${graphId}-dots`);
         if (!pathEl || !group) return;
@@ -127,6 +135,26 @@
                 'graph-point',
                 'graph-dot'
             );
+            if (
+                markerOptions?.riskScale &&
+                window.GraphMarkerRisk
+            ) {
+                window.GraphMarkerRisk.applyToMarker(
+                    circle,
+                    v,
+                    markerOptions.riskScale,
+                    {
+                        /*
+                        * Fill communicates risk.
+                        * Outline remains currentColor, which comes from
+                        * color-wave / color-swell.
+                        */
+                        paint: 'fill',
+                        stroke: 'currentColor',
+                        strokeWidth: 1.25
+                    }
+                );
+            }
             group.appendChild(circle);
         });
     }
@@ -281,9 +309,50 @@
         const tide = extractTideHeightSeries(data.tide);
         
         // Y scale 0–4m
-        renderSeries('wave',  'height', wave,  0, 4, 'data-value');
-        renderSeries('swell', 'height', swell, 0, 4, 'data-value');
-        renderSeries('tide',  'height', tide,  0, 4, 'data-value');
+        const heightSvg = el('telemetry-svg-height');
+
+        const heightRiskScale =
+            window.GraphMarkerRisk?.scaleFromSvg(heightSvg);
+
+        const riskMarkerOptions = heightRiskScale
+            ? {
+                riskScale: heightRiskScale
+            }
+            : null;
+
+        /*
+        * Wave and swell use the 2m danger threshold.
+        * Tide remains neutral because its height does not represent
+        * the same risk meaning as wave/swell height.
+        */
+        renderSeries(
+            'wave',
+            'height',
+            wave,
+            0,
+            4,
+            'data-value',
+            riskMarkerOptions
+        );
+
+        renderSeries(
+            'swell',
+            'height',
+            swell,
+            0,
+            4,
+            'data-value',
+            riskMarkerOptions
+        );
+
+        renderSeries(
+            'tide',
+            'height',
+            tide,
+            0,
+            4,
+            'data-value'
+        );
 
         setupTooltips('telemetry-svg-height', dot => {
             const cx      = parseFloat(dot.getAttribute('cx'));
@@ -1294,6 +1363,7 @@
             renderWindGraph(data);
             renderTemperatureGraph(data);
             renderPressureGraph(data);
+            renderPrecipitationGraph(data);
 
             updateAnalysisPanel(data);
 
@@ -1403,6 +1473,308 @@
             `;
         });
     }
+
+    // ─── Precipitation / probability graph ──────────────────────────────────────
+
+    function getRainScaleMaximum(values) {
+        const maximum = Math.max(
+            0,
+            ...values.filter((value) => Number.isFinite(value))
+        );
+
+        if (maximum <= 0) return 1;
+
+        const paddedMaximum = maximum * 1.15;
+
+        // Friendly scales for common hourly rainfall values.
+        if (paddedMaximum <= 1) return 1;
+        if (paddedMaximum <= 2) return 2;
+        if (paddedMaximum <= 5) return 5;
+        if (paddedMaximum <= 10) return 10;
+
+        const magnitude = 10 ** Math.floor(
+            Math.log10(paddedMaximum)
+        );
+
+        const normalized = paddedMaximum / magnitude;
+
+        let niceFactor;
+
+        if (normalized <= 1) {
+            niceFactor = 1;
+        } else if (normalized <= 2) {
+            niceFactor = 2;
+        } else if (normalized <= 5) {
+            niceFactor = 5;
+        } else {
+            niceFactor = 10;
+        }
+
+        return niceFactor * magnitude;
+    }
+
+
+    function formatRainAxisValue(value) {
+        if (value >= 10) {
+            return String(Math.round(value));
+        }
+
+        if (value >= 1) {
+            return Number(value.toFixed(1)).toString();
+        }
+
+        return Number(value.toFixed(2)).toString();
+    }
+
+
+    function buildLinearPath(points) {
+        if (!points.length) return '';
+
+        return points
+            .map((point, index) => {
+                const command = index === 0 ? 'M' : 'L';
+
+                return (
+                    `${command} ` +
+                    `${point.x.toFixed(1)} ` +
+                    `${point.y.toFixed(1)}`
+                );
+            })
+            .join(' ');
+    }
+
+
+    function renderPrecipitationGraph(data) {
+        const precipitation = numericSeries(
+            data.weather?.precipitation
+        );
+
+        const probability = numericSeries(
+            data.weather?.precipitation_probability
+        ).map((value) => {
+            return Math.max(0, Math.min(100, value));
+        });
+
+        const barsGroup = el('precipitation-rain-bars');
+        const probabilityPath = el('probability-rain-path');
+        const probabilityDots = el('probability-rain-dots');
+
+        if (
+            !barsGroup ||
+            !probabilityPath ||
+            !probabilityDots
+        ) {
+            return;
+        }
+
+        const rainMaximum = getRainScaleMaximum(precipitation);
+
+        /*
+        * Update dynamic left-axis labels.
+        * The graph has five intervals and six labels.
+        */
+        for (let index = 0; index <= 5; index += 1) {
+            const labelElement = el(`rain-left-label-${index}`);
+
+            if (!labelElement) continue;
+
+            const value = rainMaximum * (1 - index / 5);
+
+            labelElement.textContent = formatRainAxisValue(value);
+        }
+
+        barsGroup.innerHTML = '';
+        probabilityDots.innerHTML = '';
+
+        const chartWidth = SVG_X_END - SVG_X_START;
+        const hourlyWidth = chartWidth / 24;
+        const barWidth = Math.min(19, hourlyWidth * 0.65);
+
+        const probabilityPoints = [];
+
+        for (let hour = 0; hour < 24; hour += 1) {
+            const rainValue = precipitation[hour];
+            const probabilityValue = probability[hour];
+
+            /*
+            * Place each value in the centre of its hourly bucket:
+            * 00:00–01:00, 01:00–02:00, etc.
+            */
+            const bucketStartX = SVG_X_START + hour * hourlyWidth;
+            const centreX = bucketStartX + hourlyWidth / 2;
+
+            const rainY = toY(
+                rainValue,
+                0,
+                rainMaximum
+            );
+
+            const rainHeight = Math.max(
+                0,
+                SVG_Y_BOT - rainY
+            );
+
+            const hourGroup = document.createElementNS(
+                SVG_NS,
+                'g'
+            );
+
+            hourGroup.classList.add(
+                'graph-point',
+                'rain-hour-point'
+            );
+
+            hourGroup.dataset.hour = String(hour);
+            hourGroup.dataset.precipitation = String(rainValue);
+            hourGroup.dataset.probability = String(probabilityValue);
+
+            /*
+            * Full-height transparent rectangle provides a reliable
+            * mouse/touch target even when rain is 0 mm.
+            */
+            const hitArea = document.createElementNS(
+                SVG_NS,
+                'rect'
+            );
+
+            hitArea.setAttribute(
+                'x',
+                bucketStartX.toFixed(1)
+            );
+
+            hitArea.setAttribute(
+                'y',
+                String(SVG_Y_TOP)
+            );
+
+            hitArea.setAttribute(
+                'width',
+                hourlyWidth.toFixed(1)
+            );
+
+            hitArea.setAttribute(
+                'height',
+                String(SVG_Y_BOT - SVG_Y_TOP)
+            );
+
+            hitArea.classList.add('rain-hit-area');
+
+            const bar = document.createElementNS(
+                SVG_NS,
+                'rect'
+            );
+
+            bar.setAttribute(
+                'x',
+                (centreX - barWidth / 2).toFixed(1)
+            );
+
+            bar.setAttribute(
+                'y',
+                rainY.toFixed(1)
+            );
+
+            bar.setAttribute(
+                'width',
+                barWidth.toFixed(1)
+            );
+
+            bar.setAttribute(
+                'height',
+                rainHeight.toFixed(1)
+            );
+
+            bar.setAttribute('rx', '2');
+
+            bar.classList.add(
+                'color-precipitation',
+                'precipitation-bar'
+            );
+
+            hourGroup.appendChild(hitArea);
+            hourGroup.appendChild(bar);
+            barsGroup.appendChild(hourGroup);
+
+            probabilityPoints.push({
+                x: centreX,
+                y: toY(probabilityValue, 0, 100)
+            });
+        }
+
+        probabilityPath.setAttribute(
+            'd',
+            buildLinearPath(probabilityPoints)
+        );
+
+        /*
+        * Probability markers every two hours to match the other graphs.
+        */
+        const markerHours = [
+            0, 2, 4, 6, 8, 10,
+            12, 14, 16, 18, 20, 22
+        ];
+
+        markerHours.forEach((hour) => {
+            const point = probabilityPoints[hour];
+
+            if (!point) return;
+
+            const circle = document.createElementNS(
+                SVG_NS,
+                'circle'
+            );
+
+            circle.setAttribute(
+                'cx',
+                point.x.toFixed(1)
+            );
+
+            circle.setAttribute(
+                'cy',
+                point.y.toFixed(1)
+            );
+
+            circle.setAttribute('r', '4');
+
+            circle.classList.add(
+                'precipitation-probability-dot'
+            );
+
+            probabilityDots.appendChild(circle);
+        });
+
+        setupTooltips(
+            'telemetry-svg-rain',
+            (point) => {
+                const rainValue = Number(
+                    point.dataset.precipitation
+                );
+
+                const probabilityValue = Number(
+                    point.dataset.probability
+                );
+
+                return `
+                    <div class="tt-head">
+                        <span class="tt-label color-precipitation">
+                            Rain Forecast
+                        </span>
+                    </div>
+
+                    <div class="tt-value">
+                        <span class="color-precipitation">
+                            ${rainValue.toFixed(1)}mm
+                        </span>
+                        ·
+                        <span class="color-rain-probability">
+                            ${Math.round(probabilityValue)}%
+                        </span>
+                    </div>
+                `;
+            }
+        );
+    }    
+    
     // ─── Init ─────────────────────────────────────────────────────────────────
     function init() {
         const btn      = el('weather-check-btn');
@@ -1432,3 +1804,4 @@
         init();
     }
 })();
+

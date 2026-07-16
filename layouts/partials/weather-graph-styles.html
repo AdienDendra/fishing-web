@@ -223,7 +223,60 @@
     /* Shared interactive graph marker */
     .graph-point {
         cursor: pointer;
-    }    
+    }  
+    /* ── Risk-coloured graph markers ───────────────────────── */
+
+    .risk-colored-marker {
+        vector-effect: non-scaling-stroke;
+        transition:
+            r 0.12s ease,
+            fill 0.18s ease,
+            stroke 0.18s ease,
+            filter 0.12s ease;
+    }
+
+    .risk-colored-marker:hover {
+        filter:
+            brightness(1.12)
+            drop-shadow(0 0 2px var(--marker-risk-color));
+    }
+      
+    .marker-risk-legend {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+
+        gap: 8px;
+        margin-top: 4px;
+
+        font-size: 12px;
+        line-height: 1.35;
+        color: #64748b;
+    }
+
+    .dark .marker-risk-legend {
+        color: #94a3b8;
+    }
+
+    .marker-risk-gradient {
+        display: inline-block;
+
+        width: 120px;
+        height: 8px;
+
+        border-radius: 999px;
+
+        background: linear-gradient(
+            90deg,
+            #22c55e 0%,
+            #eab308 50%,
+            #f97316 80%,
+            #ef4444 100%,
+            #7f1d1d 100%
+        );
+    }
+
 
     .color-temperature {
         color: #dc2626;
@@ -249,6 +302,72 @@
         color: #a78bfa;
     }
     
+    /* ── Precipitation dual-axis graph ─────────────────────── */
+
+    /* Precipitation bars */
+    .color-precipitation {
+        color: #0284c7;
+    }
+
+    .dark .color-precipitation {
+        color: #38bdf8;
+    }
+
+    /* Probability line */
+    .color-rain-probability {
+        color: #2563eb;
+    }
+
+    .dark .color-rain-probability {
+        color: #60a5fa;
+    }
+
+    .precipitation-bar {
+        fill: currentColor;
+        opacity: 0.48;
+        transition:
+            opacity 0.12s ease,
+            filter 0.12s ease;
+    }
+
+    .rain-hour-point:hover .precipitation-bar {
+        opacity: 0.9;
+        filter: brightness(1.1);
+    }
+
+    /*
+    * Transparent hourly hit target so tooltip still works when
+    * precipitation is exactly 0 mm.
+    */
+    .rain-hit-area {
+        fill: transparent;
+        pointer-events: all;
+    }
+
+    .precipitation-probability-dot {
+        fill: currentColor;
+        stroke: var(--entry, #ffffff);
+        stroke-width: 1.5;
+    }
+
+    .dark .precipitation-probability-dot {
+        stroke: var(--entry, #1f2937);
+    }
+
+    #probability-rain-path {
+        stroke-linejoin: round;
+        stroke-linecap: round;
+    }
+
+    .rain-bar-legend {
+        display: inline-block;
+        width: 16px;
+        height: 9px;
+        border-radius: 2px;
+        background-color: currentColor;
+        opacity: 0.55;
+    }
+
     /* ── Dot interactivity ───────────────────────────────────────── */
     .graph-dot {
         r: 5px !important;
