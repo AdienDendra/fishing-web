@@ -23,28 +23,7 @@
       Timeline:        time-line-{id}, time-text-{id}
 */}}
 
-{{ $id          := .id }}
-{{ $title       := .title }}
-{{ $y_unit      := .y_unit }}
-{{ $y_max       := .y_max        | default 1.0 }}
-{{ $danger_val  := .danger_val   | default 0.0 }}
-{{ $series      := .series       | default (slice) }}
-{{ $legend      := .legend       | default (slice) }}
-{{ $dangerLabel := .danger_label | default "" }}
-
-{{/* Chart layout constants */}}
-{{ $chart_x_start := 80 }}
-{{ $chart_x_end   := 820 }}
-{{ $xTicks := slice 80 142 203 265 327 388 450 512 573 635 697 758 820 }}
-
-{{/* Compute danger line y position */}}
-{{ $danger_y := 360.0 }}
-{{ if gt (float $y_max) 0.0 }}
-    {{ $ratio    := div (float $danger_val) (float $y_max) }}
-    {{ $danger_y  = sub 360.0 (mul $ratio 320.0) }}
-
-{{/* Dot color */}}
-{{ $y_min       := .y_min | default 0.0 }}
+{{/* ── Graph configuration ───────────────────────────────────── */}}
 {{ $id          := .id }}
 {{ $title       := .title }}
 {{ $y_unit      := .y_unit }}
@@ -55,6 +34,29 @@
 {{ $legend      := .legend       | default (slice) }}
 {{ $dangerLabel := .danger_label | default "" }}
 
+{{/* ── Chart layout constants ─────────────────────────────────── */}}
+{{ $chart_x_start := 80 }}
+{{ $chart_x_end   := 820 }}
+{{ $xTicks := slice 80 142 203 265 327 388 450 512 573 635 697 758 820 }}
+
+{{/*
+    Compute danger-line position.
+
+    The calculation includes y_min so the blueprint can later support
+    non-zero chart ranges, such as pressure from 980–1040 hPa.
+*/}}
+{{ $danger_y := 360.0 }}
+
+{{ if and
+    (gt (float $danger_val) 0.0)
+    (gt (float $y_max) (float $y_min))
+}}
+    {{ $danger_ratio := div
+        (sub (float $danger_val) (float $y_min))
+        (sub (float $y_max) (float $y_min))
+    }}
+
+    {{ $danger_y = sub 360.0 (mul $danger_ratio 320.0) }}
 {{ end }}
 
 <div class="w-full space-y-3 text-neutral-600 dark:text-neutral-400">
@@ -149,7 +151,7 @@
             {{ range $series }}
             <path id="{{ . }}-{{ $id }}-path"
                   fill="none" stroke="currentColor"
-                  class="color-{{ . }}" stroke-width="1.8" />
+                  class="color-{{ . }}" stroke-width="1.0" />
             <g id="{{ . }}-{{ $id }}-dots"></g>
             {{ end }}
 

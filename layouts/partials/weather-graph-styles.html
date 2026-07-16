@@ -223,7 +223,16 @@
     /* Shared interactive graph marker */
     .graph-point {
         cursor: pointer;
-    }  
+    }
+
+    /* Graph markers use solid fill without outlines */
+    .graph-dot,
+    .risk-colored-marker,
+    .wind-direction-arrow,
+    .wind-gust-marker,
+    .precipitation-probability-dot {
+        stroke: none !important;
+    }
     /* ── Risk-coloured graph markers ───────────────────────── */
 
     .risk-colored-marker {
@@ -346,12 +355,7 @@
 
     .precipitation-probability-dot {
         fill: currentColor;
-        stroke: var(--entry, #ffffff);
-        stroke-width: 1.5;
-    }
-
-    .dark .precipitation-probability-dot {
-        stroke: var(--entry, #1f2937);
+        stroke: none !important;
     }
 
     #probability-rain-path {
